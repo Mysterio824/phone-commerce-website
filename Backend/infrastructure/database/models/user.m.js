@@ -1,5 +1,5 @@
-const { v5: uuidv5 } = require('uuid');
 const db = require('../db');
+const tbName = 'users';
 const ROLES = require('../../../application/enums/roles');
 
 const userModel = {
@@ -11,7 +11,7 @@ const userModel = {
         if (!user.role) {
             user.role = ROLES.USER;
         }
-        return await db.add('users', user);
+        return await db.add(tbName, user);
     },
 };
 

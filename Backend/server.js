@@ -1,8 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const passport = require('./interfaces/passport/passport');
-const authRoutes = require('./interfaces/routes/auth');
-const { client: redisClient, shutdown: redisShutdown } = require('./infrastructure/external/redisClient');
+const { shutdown: redisShutdown } = require('./infrastructure/external/redisClient');
 const { exec } = require('child_process');
 const util = require('util');
 const cookieParser = require('cookie-parser');
@@ -27,7 +26,16 @@ app.use(passport.session());
 
 app.use(checkUser);
 
+const authRoutes = require('./interfaces/routes/auth');
+// const userRoutes = require('./interfaces/routes/user');
+const productRoutes = require('./interfaces/routes/product');
+const cartRoutes = require('./interfaces/routes/cart');
+const categoryRoutes = require('./interfaces/routes/category');
 app.use('/auth', authRoutes);
+// app.use('/user', userRoutes);
+app.use('/product', productRoutes);
+app.use('/cart', cartRoutes);
+app.use('/category', categoryRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Welcome to the Phone Commerce Website!', userRole: req.user.role });

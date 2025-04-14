@@ -3,7 +3,7 @@ const AuthService = require('../../application/services/authService');
 const CustomError = require('../../utils/cerror');
 const ROLES = require('../../application/enums/roles');
 
-module.exports = {
+const authController = {
     logout: async (req, res) => {
         try {
             const accessToken = req.cookies.accessToken;
@@ -113,3 +113,5 @@ module.exports = {
         }
     },
 };
+
+module.exports = authController;

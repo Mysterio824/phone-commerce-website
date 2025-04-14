@@ -1,0 +1,11 @@
+.card .card-header {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  gap: 40px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+}

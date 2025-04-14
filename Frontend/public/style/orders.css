@@ -1,0 +1,62 @@
+.filter_item{
+    font-size: 1.2em;;
+    height: 40px;
+}
+
+.filter_item:hover {
+    font-size: larger;
+    font-weight: 600;
+}
+
+.cart_price {
+    margin-left: 10px;
+    margin-right: 10px;
+    font-size: 1.2em;;
+}
+
+.chosen {
+    font-size: larger;
+    font-weight: 600;
+}
+
+.Pending {
+    color: black !important;
+}
+.Cancelled {
+    color: red !important;
+}
+.Completed {
+    color: green !important;
+}
+
+.table {
+    text-align: center;
+    margin-left: 30px;
+    table-layout: fixed;
+}
+
+.table th:nth-child(1) {
+    width: 15%;
+}
+
+.table th:nth-child(2) {
+    width: 25%;
+}
+
+.table th:nth-child(3) {
+    width: 10%;
+}
+
+.table th:nth-child(4) {
+    width: 35%;
+}
+
+.table th:nth-child(5) {
+    text-align: center;
+    width: 15%;
+}
+
+.table td {
+    vertical-align: top;
+    text-align: center;
+}

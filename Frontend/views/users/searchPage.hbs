@@ -1,0 +1,65 @@
+<link rel="stylesheet" href="/style/lobby.css" />
+<link rel="stylesheet" href="/style/search.css" />
+
+<div class="row my-2" style="height: 84vh;">
+    <div class="col-2">
+        <div class="card" style="margin-left: 15px;">
+            <div class="card-header bg-black text-white h6 h-30" id="sort-container">
+                <span>Sort</span>
+            </div>
+
+            <div class="card-body">
+                <div class="btn-group" style="border: 1px solid black">
+                    <button type="button" class="btn btn-dark dropdown-toggle dropdown-toggle-split"
+                        data-bs-toggle="dropdown" aria-expanded="false" id="CatBtn" value="none"> Giá: </button>
+                    <ul class="dropdown-menu dropdown-menu-end bg-dark">
+                        <li><button class="btn btn-dark" style="width:100%;"
+                                onclick="changeButton(event, 'min', 'Giá: Thấp đến Cao')">
+                                Giá: Thấp đến Cao
+                            </button></li>
+                        <li><button class="btn btn-dark" style="width:100%;"
+                                onclick="changeButton(event, 'max', 'Giá: Cao đến Thấp')">
+                                Giá: Cao đến Thấp
+                            </button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div class="card" style="margin-left: 15px;">
+            <div class="card-header bg-black text-white h6 h-30">
+                <span class="home-filter__label">Filter Price</span>
+            </div>
+
+            <div class="card-body">
+                <div style="display: flex; gap: 6px;">
+                    <label for="MinPrice" class="col-form-label text-sm-end">Min:</label>
+                    <input type="number" class="form-control" id="MinPrice" placeholder="0">
+                </div>
+                <br>
+                <div style="display: flex; gap: 5px;">
+                    <label for="MaxPrice" class="col-form-label text-sm-end">Max:</label>
+                    <input type="number" class="form-control" id="MaxPrice" placeholder="100000">
+                </div>
+            </div>
+            <button class="btn btn-dark" style="align-self: center; font-size: large"
+                onclick="loadPage(1)">Apply</button>
+            <br>
+        </div>
+    </div>
+
+    <div class="col-10">
+        <div class="card" id="main-container" style="margin-left: 5px;">
+            <div class="card-body" style="width: fit-content;">
+                <div id="product-container" style="height:74vh">
+                </div>
+                <nav aria-label="Page navigation example" class="pagination-container">
+                    <ul class="pagination" id="pagination">
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/products.js"></script>

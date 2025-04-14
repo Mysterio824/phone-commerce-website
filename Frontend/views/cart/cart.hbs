@@ -1,0 +1,46 @@
+<link rel="stylesheet" href="/style/cart.css">
+
+<div class="row my-2">
+    <div class="col-9" style="margin-left: 20px;">
+        {{#if (neq cart.total_amount 0) }}
+        <table class="table">
+            <thead class="table-dark h5" style="position: sticky; top: 0;">
+                <tr>
+                    <th scope="col">Product</th>
+                    <th scope="col">Information</th>
+                    <th scope="col">Quantity</th>
+                    <th scope="col">Total</th>
+                    <th scope="col"> </th>
+                </tr>
+            </thead>
+
+            <tbody id="cart-table"></tbody>
+        </table>
+        <nav aria-label="Page navigation example" class="pagination-container" style="margin-bottom: 10px;">
+            <ul class="pagination" id="pagination"></ul>
+        </nav>
+        {{else}}
+        <img src="/imgs/no-cart.png" style="width: 100%">
+        {{/if}}
+    </div>
+    <div class="col-1" style="width: 50px">
+    </div>
+
+    <div class="col-2">
+        <div class="card" style="position: sticky; top: 0;">
+            <div class="card-header bg-black text-white h5 fw-bold">Cart Total</div>
+            <div class="card-body">
+                <h5>Total: </h5><span id="cart-total"> {{cart.total_price}} VNĐ</span>
+                <hr>
+                <div style="display: flex; width:100%; justify-content:center;">
+                    <button onclick="window.location.href = '/user/checkout'" class="btn btn-dark" id="checkoutBtn">
+                        Check Out</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p id="confirm-window"></p>
+
+<script src="/js/cart.js"></script>

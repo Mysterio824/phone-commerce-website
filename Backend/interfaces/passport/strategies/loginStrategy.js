@@ -1,5 +1,5 @@
 const MyStrategy = require('./MyStrategy');
-const bcrypt = require('bcrypt');
+const { comparePassword: comparePassword } = require('../../../utils/hashUtils');
 const userModel = require('../../../infrastructure/database/models/user.m');
 
 module.exports = new MyStrategy('loginStrategy', async (username, password, email, done) => {
@@ -11,7 +11,7 @@ module.exports = new MyStrategy('loginStrategy', async (username, password, emai
             return done(null, false, { message: "This Username/Email doesn't exist" });
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        const isPasswordValid = await comparePassword(password, user.password);
         if (!isPasswordValid) {
             return done(null, false, { message: 'Wrong Username/Email or Password' });
         }

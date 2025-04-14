@@ -1,0 +1,30 @@
+.info-container {
+    padding-top: 20px;
+    border-top: 1px solid #d0d0d0;
+    border-bottom: 1px solid #d0d0d0;
+}
+
+.info {
+    margin-bottom: 20px;
+    font-size: larger;
+}
+
+.info-label {
+    font-size: larger;
+    font-weight: bold;
+}
+
+.confirm {
+    justify-self: center;
+    font-size: x-large;
+    margin-top: 10px;
+    font-weight: 500;
+}
+
+.button-group {
+    gap: 10px;
+    display: flex;
+    justify-self: center;
+    height: fit-content;
+    margin-top: 20px;
+}

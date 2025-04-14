@@ -1,0 +1,140 @@
+.cont {
+    height: 79vh;
+    justify-items: center;
+}
+
+.grid {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.main-body {
+    padding: 15px;
+    display: flex;
+    width: 60%;
+    margin-top: 5%;
+    font-size: 1.2em;
+    box-shadow: 0px 10px 10px -5px rgba(0, 0, 0, 0.1);
+    background-color: #f4f2ee;
+    border-radius: 20px;
+    height: 40vh;
+}
+
+.main-card {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+}
+
+.main-card__content {
+    margin-top: 10px;
+}
+
+.second-card {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    flex: 3;
+}
+
+.label h4 {
+    margin: 16px 0px 4px 0px;
+}
+
+.display {
+    margin-bottom: -6px;
+    margin-top: 15px;
+    flex: 2;
+}
+
+.label {
+    flex: 1;
+}
+
+.current_address {
+    margin-top: -10px;
+}
+
+.user-name {
+    font-size: x-large;
+    font-weight: 600;
+    margin: 20px;
+}
+
+.button {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 86px;
+}
+
+.button__purchased-history {
+    margin-top: 66px;
+    width: 206px;
+    background-color: black;
+    height: 38px;
+    color: white;
+    border-color: grey;
+    border-radius: 20px;
+    border-width: 2px;
+    font-size: 1em;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.button__purchased-history:hover {
+    background-color: grey;
+}
+
+.avatar {
+    display: flex;
+    width: 150px;
+    height: 150px;
+    margin: auto;
+    border-radius: 86px;
+}
+
+.change-infor-btn-container {
+    margin-top: 23px;
+}
+
+.change-infor {
+    margin-top: 14px;
+    width: 206px;
+    background-color: black;
+    height: 38px;
+    color: white;
+    border-color: grey;
+    border-radius: 20px;
+    border-width: 2px;
+    font-size: 1em;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.change-infor:hover {
+    background-color: grey;
+}
+
+input[type="text"], input[type="email"] {
+    font-size: 1em;
+}
+
+.row-detail {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+
+}
+
+#ChangeInfor {
+    display: none;
+}
+
+#ChangePass {
+    display: none;
+}

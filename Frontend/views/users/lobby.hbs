@@ -1,0 +1,22 @@
+<link rel="stylesheet" href="/style/lobby.css" />
+</div>
+<div class="row my-2">
+    <div class="col-12">
+        <div class="card" id="main-container">
+            <div class="card-header bg-black text-white" style="display: flex">
+                <div id="breadcrumbs" class="breadcrumbs"> <span class="cate" onclick="loadPage(1, 10, 0)">Category &ThinSpace;</span>
+                    <ul id="category-menu" class="dropdown-menu"></ul>
+                </div>
+                <div id="innerbreadCrumbs"></div>
+            </div>
+            <div class="card-body" style="height: 71vh;">
+                <div id="product-container"></div>
+            </div>
+            <nav aria-label="Page navigation example" class="pagination-container" style="margin-bottom: 10px">
+                <ul class="pagination" id="pagination"></ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<script src="/js/products.js"></script>

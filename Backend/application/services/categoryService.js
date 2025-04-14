@@ -5,7 +5,7 @@ const CACHE_KEYS = {
     HIERARCHY: 'category:hierarchy',
     MAP: 'category:map',
     LOWEST: 'category:lowest'
-  };
+};
   
 const CACHE_TTL = 300;
 

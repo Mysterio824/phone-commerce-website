@@ -8,13 +8,14 @@ const ROLES = require('../enums/roles');
 
 class AuthService {
     static generateTokens(sessionId, userId) {
+        const jti = uuidv4();
         const accessToken = jwt.sign(
-            { sessionId, userId },
+            { sessionId, userId, jti },
             process.env.JWT_SECRET,
             { expiresIn: '30m' }
         );
         const refreshToken = jwt.sign(
-            { sessionId, userId },
+            { sessionId, userId, jti },
             process.env.JWT_SECRET,
             { expiresIn: '8h' }
         );
@@ -131,17 +132,37 @@ class AuthService {
         return { accessToken, newRefreshToken };
     }
 
-    static async logout(accessToken, sessionId) {
-        if (!accessToken || !sessionId) {
-            throw new CustomError(400, 'Access token and session ID are required for logout.');
+    static async logout(accessToken) {
+        if (!accessToken) {
+            throw new CustomError(400, 'Access token is required for logout.');
+        }
+        const decodedToken = jwt.decode(accessToken);
+        if (!decodedToken || !decodedToken.sessionId) {
+            throw new CustomError(400, 'Invalid access token.');
         }
 
-        await client.del(sessionId);
+        const { sessionId } = decodedToken;
 
-        const decoded = jwt.decode(accessToken);
+        await client.del(sessionId);
+        let decoded;
+        try {
+            decoded = jwt.verify(accessToken, process.env.JWT_SECRET, {
+                ignoreExpiration: true,
+            });
+        } catch (error) {
+            throw new CustomError(401, 'Invalid access token.');
+        }
+        if (!decoded || !decoded.jti || !decoded.exp) {
+            return { message: 'Logout successful (session deleted, token missing claims for blacklist).' };
+        }
+        const { jti, exp } = decoded;
+        const blacklistKey = `blacklist:jti:${jti}`;
         const currentTime = Math.floor(Date.now() / 1000);
-        const ttl = decoded.exp - currentTime > 0 ? decoded.exp - currentTime : 3600;
-        await client.set(`blacklist:${accessToken}`, '1', 'EX', ttl);
+
+        const ttl = exp - currentTime;
+        if (ttl > 0) {
+             await client.set(blacklistKey, '1', 'EX', ttl); 
+        }
 
         return { message: 'Logout successful.' };
     }

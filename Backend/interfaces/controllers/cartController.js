@@ -1,5 +1,6 @@
 const cartService = require('../../application/services/cartService');
 const CustomError = require('../../utils/cerror');
+const { success } = require('../passport/strategies/loginStrategy');
 
 const cartController = {
     getCart: async (req, res, next) => {
@@ -18,7 +19,7 @@ const cartController = {
                 maximumFractionDigits: 2
             }).format(cart.total_price);
 
-            res.render('cart/cart', { cart, user });
+            res.status(200).json({ data: { cart } });
         } catch (error) {
             console.error(error.message);
             next(new CustomError(500, 'Failed to fetch cart data.'));
@@ -45,7 +46,7 @@ const cartController = {
                 return res.json({ page, total_pages, per_page, cart: formattedCart });
             }
             
-            res.json({ cart: formattedCart, page, total_pages, per_page });
+            res.statsu(200).json({ data: { cart: formattedCart, page, total_pages, per_page }});
         } catch (error) {
             console.error(error.message);
             next(new CustomError(500, 'Failed to fetch cart data.'));
@@ -66,7 +67,7 @@ const cartController = {
             }
 
             await cartService.addProductToCart(uid, productId, quantity);
-            res.json({ success: true });
+            res.status(200).json({ message: 'Product added to cart successfully.', data: { productId, quantity } });
         } catch (error) {
             console.error(error.message);
             if (error instanceof CustomError) {
@@ -90,7 +91,7 @@ const cartController = {
             }
 
             const result = await cartService.updateCartItem(uid, productId, quantity);
-            res.json(result);
+            res.status(200).json({ message: 'Product updated in cart successfully.', data: { result } });
         } catch (error) {
             console.error(error.message);
             if (error instanceof CustomError) {
@@ -113,7 +114,7 @@ const cartController = {
             }
 
             const { totalPrice } = await cartService.removeProductFromCart(uid, productId);
-            res.json({ totalPrice });
+            res.status(200).json({ message: 'Product removed from cart successfully.', data: { totalPrice } });
         } catch (error) {
             console.error(error.message);
             if (error instanceof CustomError) {

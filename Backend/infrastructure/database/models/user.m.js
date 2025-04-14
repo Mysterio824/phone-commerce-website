@@ -3,16 +3,28 @@ const tbName = 'users';
 const ROLES = require('../../../application/enums/roles');
 
 const userModel = {
-    async one(fields, values) {
-        return await db.one('users', fields, values);
+    all: async () => {
+        const users = await db.all(tbName);
+        return users;
     },
-
-    async add(user) {
+    one: async (idField, idValue) => {
+        const user = await db.one(tbName, idField, idValue);
+        return user;
+    },
+    add: async user => {
         if (!user.role) {
             user.role = ROLES.USER;
         }
         return await db.add(tbName, user);
     },
+    edit: async user => {
+        const u = await db.edit(tbName, user);
+        return u;
+    },
+    delete: async (idField, idValue) => {
+        const rs = await db.delete(tbName, idField, idValue);
+        return rs;
+    }
 };
 
 module.exports = userModel;

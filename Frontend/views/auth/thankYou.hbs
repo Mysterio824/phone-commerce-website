@@ -1,0 +1,26 @@
+<div class="jumbotron text-center" style="height: 85vh;">
+    <h1 class="display-3" style="color: green">SUCCESS!</span> THANK YOU</h1>
+    <p class="lead">You will be redirected to the login in <strong id="timer">5</strong></p>
+    <hr>
+    <p style="font-size:xx-large!">
+        Continue Shopping
+    </p>
+    <p class="lead">
+        <a class="btn btn-dark btn-lg" href="/auth" role="button">Back to Login</a>
+    </p>
+</div>
+
+<script>
+    let countdown = 5;
+    const timerElement = document.getElementById("timer");
+
+    const countdownTimer = setInterval(() => {
+        countdown--;
+        timerElement.textContent = countdown;
+
+        if (countdown === 0) {
+            clearInterval(countdownTimer);
+            window.location.href = "/auth";
+        }
+    }, 1000);
+</script>

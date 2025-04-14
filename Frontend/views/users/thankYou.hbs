@@ -1,0 +1,28 @@
+<div class="jumbotron text-center" style="height: 88vh;">
+    <h1 class="display-3" style="font-weight: 600; color: green">Thank You!</h1>
+    <p class="lead">Dear <strong>{{user.username}}</strong>, </p>
+    <p class="lead">Thank you for choosing buying with us</p>
+    <p class="lead">You will be redirected to the lobby in <strong id="timer">5</strong></p>
+    <hr>
+    <p style="font-size:xx-large!">
+        Continue Shopping
+    </p>
+    <p class="lead">
+        <a class="btn btn-dark btn-lg" href="/" role="button">Back to homepage</a>
+    </p>
+</div>
+
+<script>
+    let countdown = 5;
+    const timerElement = document.getElementById("timer");
+
+    const countdownTimer = setInterval(() => {
+        countdown--;
+        timerElement.textContent = countdown;
+
+        if (countdown === 0) {
+            clearInterval(countdownTimer);
+            window.location.href = "/";
+        }
+    }, 1000);
+</script>

@@ -1,29 +1,24 @@
 const passport = require('passport');
 const AuthService = require('../../application/services/authService');
 const CustomError = require('../../utils/cerror');
-const ROLES = require('../../application/enums/roles');
+const config = require('../../config'); // Import config to use CLIENT_URL
+
+const CLIENT_URL = config.app.clientUrl;
+const OAUTH_SUCCESS_REDIRECT = `${CLIENT_URL}/login?oauth_success=true`;
+const OAUTH_FAILURE_REDIRECT = `${CLIENT_URL}/login?oauth_error=true`;
+const VERIFY_SUCCESS_REDIRECT = `${CLIENT_URL}/verification-success`;
 
 const authController = {
     logout: async (req, res) => {
         try {
             const accessToken = req.cookies.accessToken;
-            if (!accessToken) {
-                throw new CustomError(400, 'No access token provided.');
-            }
     
-            const decoded = jwt.decode(accessToken);
-            if (!decoded || !decoded.sessionId) {
-                throw new CustomError(400, 'Invalid access token.');
-            }
-    
-            const { sessionId } = decoded;
-    
-            const result = await AuthService.logout(accessToken, sessionId);
+            const result = await AuthService.logout(accessToken);
     
             res.clearCookie('accessToken');
             res.clearCookie('refreshToken');
     
-            res.status(200).json(result);
+            res.status(200).json({data: { result }, message: 'Logout successful.'});
         } catch (error) {
             res.status(error.statusCode || 500).json({ message: error.message || 'Logout failed.' });
         }
@@ -35,12 +30,12 @@ const authController = {
                 return next(err);
             }
             if (!user) {
-                return res.redirect('/auth');
+                return res.redirect(OAUTH_FAILURE_REDIRECT);
             }
             try {
                 const { accessToken, refreshToken } = await AuthService.handleGoogleAuth(user);
                 AuthService.setTokensInCookies(res, accessToken, refreshToken);
-                res.redirect('/');
+                res.redirect(OAUTH_SUCCESS_REDIRECT);
             } catch (error) {
                 next(error);
             }
@@ -48,8 +43,8 @@ const authController = {
     },
 
     googleCallback: passport.authenticate('google', {
-        successRedirect: '/',
-        failureRedirect: '/auth',
+        successRedirect: OAUTH_SUCCESS_REDIRECT,
+        failureRedirect: OAUTH_FAILURE_REDIRECT,
     }),
 
     login: (req, res, next) => {
@@ -64,7 +59,10 @@ const authController = {
             try {
                 const { accessToken, refreshToken } = await AuthService.handleLogin(user);
                 AuthService.setTokensInCookies(res, accessToken, refreshToken);
-                res.status(200).json({ accessToken, refreshToken, message: 'Login successful' });
+                res.status(200).json({
+                    message: 'Login successful',
+                    user: { uid: user.uid, username: user.username, email: user.email, role: user.role }
+                });
             } catch (error) {
                 next(error);
             }
@@ -80,8 +78,8 @@ const authController = {
                 return res.status(401).json({ message: info.message });
             }
             try {
-                const { username } = await AuthService.handleSignup(user);
-                res.status(200).json({username, message: 'User created successfully. Please check your email to confirm your account.'});
+                await AuthService.handleSignup(user);
+                res.status(200).json({message: 'User created successfully. Please check your email to confirm your account.'});
             } catch (error) {
                 next(error);
             }
@@ -92,9 +90,7 @@ const authController = {
         try {
             const { token } = req.params;
             await AuthService.verifyAccount(token);
-            res.render('auth/thankYou', {
-                layout: 'blank',
-            });
+            res.redirect(VERIFY_SUCCESS_REDIRECT);
         } catch (error) {
             next(new CustomError(error.statusCode || 404, error.message));
         }
@@ -107,7 +103,7 @@ const authController = {
     
             AuthService.setTokensInCookies(res, accessToken, newRefreshToken);
     
-            res.status(200).json({ message: 'Token refreshed successfully.', accessToken });
+            res.status(200).json({ message: 'Token refreshed successfully.', data: { accessToken, newRefreshToken } });
         } catch (error) {
             res.status(error.statusCode || 500).json({ message: error.message || 'Token refresh failed.' });
         }

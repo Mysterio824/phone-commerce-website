@@ -24,8 +24,7 @@ const categoryController = {
         try {
             const categories = await categoryService.getLowestCategories();
             return res.status(200).json({
-                success: true,
-                categories
+                data: { categories }
             });
         } catch (error) {
             next(new CustomError(500, 'Unable to retrieve categories', error));
@@ -45,9 +44,8 @@ const categoryController = {
                 return res.status(500).json({message: "Can't add this category"});
             }
             
-            return res.status(200).json({
-                success: true,
-                data: addedCategory
+            return res.status(201).json({
+                data: { addedCategory }
             });
         } catch (err) {
             console.error(err.message);
@@ -69,8 +67,7 @@ const categoryController = {
             }
 
             return res.status(200).json({
-                success: true,
-                data: editedCategory
+                data: { editedCategory }
             });
         } catch (err) {
             next(new CustomError(500, 'Unable to edit category', err));
@@ -104,9 +101,8 @@ const categoryController = {
             }
     
             return res.status(200).json({
-                success: true,
                 message: "Category and its subcategories deleted successfully.",
-                data: deletedCategory
+                data: { deletedCategory }
             });
         } catch (err) {
             res.status(500).json({message: err.message});

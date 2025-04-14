@@ -1,7 +1,7 @@
 const MyStrategy = require('./MyStrategy');
 const validator = require('validator');
 const userModel = require('../../../infrastructure/database/models/user.m');
-const { hashPassword } = require('../../../utils/hashPassword');
+const { hashPassword } = require('../../../utils/hashUtils');
 
 module.exports = new MyStrategy('signupStrategy', async (username, password, email, done) => {
     try {

@@ -2,43 +2,43 @@ const jwt = require('jsonwebtoken');
 const CustomError = require('../../utils/cerror');
 const { client } = require('../../infrastructure/external/redisClient');
 const ROLES = require('../../application/enums/roles');
-require('dotenv').config();
+const config = require('../../config');
 
 const checkUser = async (req, res, next) => {
+    const accessToken = req.cookies.accessToken;
+
+    if (!accessToken) {
+        req.user = { role: ROLES.NON_USER };
+        return next();
+    }
+
     try {
-        const accessToken = req.cookies.accessToken;
+        const decoded = jwt.verify(accessToken, config.auth.jwt.secret);
+        const { jti, sessionId, userId } = decoded;
 
-        
-        if (!accessToken) {            
-            req.user = { role: ROLES.NON_USER };
-            return next();
-        }
-
-        const isBlacklisted = await client.get(`blacklist:${accessToken}`);
-        if (isBlacklisted) {
-            res.clearCookie('accessToken'); 
-            req.user = { role: ROLES.NON_USER };
-            return next();
-        }
-
-        const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
-        const { sessionId, userId } = decoded;
-
-        if (!sessionId || !userId) {
+        if (!jti || !sessionId || !userId) {
             res.clearCookie('accessToken');
-            throw new CustomError(401, 'Invalid token payload.');
+            return res.status(401).json({ message: 'Invalid token payload.' });
+        }
+
+        const blacklistedJtiKey = `blacklist:jti:${jti}`;
+        const isBlacklisted = await client.get(blacklistedJtiKey);
+
+        if (isBlacklisted) {
+            res.clearCookie('accessToken');
+            return res.status(401).json({ message: 'Token revoked. Please log in again.' });
         }
 
         const sessionData = await client.get(sessionId);
         if (!sessionData) {
             res.clearCookie('accessToken');
-            throw new CustomError(401, 'Session expired or invalid. Please log in again.');
+            return res.status(401).json({ message: 'Session expired or invalid. Please log in again.' });
         }
 
         const user = JSON.parse(sessionData);
         if (user.uid !== userId) {
             res.clearCookie('accessToken');
-            throw new CustomError(401, 'Invalid user session.');
+            return res.status(401).json({ message: 'Invalid user session.' });
         }
 
         if (!user.role) {
@@ -48,14 +48,26 @@ const checkUser = async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
-        if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+        if (error instanceof jwt.JsonWebTokenError || error instanceof jwt.TokenExpiredError) {
             res.clearCookie('accessToken');
-            return res.status(401).json({ message: 'Invalid or expired token. Please refresh your token or log in again.' });
+            console.warn(`JWT Error: ${error.name} - ${error.message}`);
+            return res.status(401).json({ message: 'Invalid or expired token. Please log in again.' });
         }
 
+        if (error.message.includes('Redis') || error.code === 'ECONNREFUSED') {
+            console.error("Redis error during authentication:", error);
+            return res.status(503).json({ message: 'Authentication service unavailable. Please try again later.' });
+        }
+
+        if (error instanceof SyntaxError) {
+            console.error("Error parsing session data from Redis:", error);
+            res.clearCookie('accessToken');
+            return res.status(500).json({ message: 'Internal server error processing session.' });
+        }
+
+        console.error("Authentication error in middleware:", error);
         const statusCode = error.statusCode || 500;
-        const message = error.message || 'An error occurred while authenticating the user.';
-        res.status(statusCode).json({ message });
+        res.status(statusCode).json({ message: error.statusCode ? error.message : 'An error occurred during authentication.' });
     }
 };
 

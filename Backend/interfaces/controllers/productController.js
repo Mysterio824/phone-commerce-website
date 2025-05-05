@@ -1,18 +1,18 @@
 const CustomError = require('../../utils/cerror');
 const productService = require('../../application/services/productService');
-const { success } = require('../passport/strategies/loginStrategy');
 
 const productController = {
     getProducts: async (req, res, next) => {
         try {
             const filters = {
-                page: parseInt(req.body.page) || 1,
-                per_page: parseInt(req.body.per_page) || 5,
-                min: parseInt(req.body.min) || 0,
-                max: parseInt(req.body.max) || Infinity,
+                page: parseInt(req.body.page || 1),
+                per_page: parseInt(req.body.per_page || 5),
+                min: parseInt(req.body.min || 0),
+                max: parseInt(req.body.max || Infinity),
+                rating: parseInt(req.body.rating || 0),
                 sort: req.body.sort || 'none',
                 query: req.cookies.search_query || '',
-                catID: parseInt(req.body.catID) || 0
+                catID: parseInt(req.body.catID || 0)
             };
 
             const result = await productService.getFilteredProducts(filters);
@@ -28,15 +28,14 @@ const productController = {
 
     getDetail: async (req, res, next) => {
         try {
-            const user = req.user || {};
             const id = parseInt(req.params.id);
             
             const result = await productService.getProductDetail(id);
             if (!result.product) {
                 return next(new CustomError(404, "Product not found or already been deleted"));
-            }
+            }            
             
-            res.staus(200).json({ 
+            res.status(200).json({ 
                 message: "Product detail fetched successfully",
                 data: {
                     product: result.product, 
@@ -131,30 +130,13 @@ const productController = {
 
             res.status(200).json({
                 message: "Product marked as deleted successfully.",
-                data: { deletedProduct: result }
+                data: { product: result }
             });
         } catch (error) {
             console.error('Error deleting product:', error.message);
             next(new CustomError(500, 'Error deleting product', error));
         }
     },
-
-    uploadImg: (req, res) => {
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).send('No files uploaded.');
-        }
-        
-        res.status(201).json({
-            message: 'Files uploaded successfully',
-            data: {
-                files: req.files.map(file => ({
-                    filename: file.filename,
-                    path: '/imgs/' + file.filename,
-                    destination: file.destination,
-                })),
-            },   
-        });
-    }
 };
 
 module.exports = productController;

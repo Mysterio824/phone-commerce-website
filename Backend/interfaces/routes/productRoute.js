@@ -1,20 +1,15 @@
+const express = require('express');
 const productController = require('../controllers/productController');
-const multer = require('multer');
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, './public/imgs'); // Folder where files will be saved
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-    },
-});
+const restrictTo = require('../middlewares/JwtMiddleware');
+const ROLES = require('../../application/enums/roles');
 
-const upload = multer({ storage });
+const router = express.Router();
 
-const router = require('express').Router();
-router.post('/upload', upload.array('files[]'), productController.uploadImg);
-router.post('/api', productController.getProducts);
+// Public routes
+router.post('/', productController.getProducts);
 router.get('/:id', productController.getDetail);
+
+// Admin-only routes
 router.put('/edit/:id', productController.putEditProduct);
 router.post('/add', productController.postAddProduct);
 router.delete('/delete', productController.deleteProduct);

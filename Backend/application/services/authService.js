@@ -5,10 +5,12 @@ const { client } = require('../../infrastructure/external/redisClient');
 const mailService = require('../../infrastructure/messaging/mailService');
 const userModel = require('../../infrastructure/database/models/user.m');
 const ROLES = require('../enums/roles');
+const config = require('../../config'); 
+const { v4: uuidv4 } = require('uuid');
 
 class AuthService {
     static generateTokens(sessionId, userId) {
-        const jti = uuidv4();
+        const jti = uuidv4(sessionId);
         const accessToken = jwt.sign(
             { sessionId, userId, jti },
             process.env.JWT_SECRET,
@@ -66,7 +68,7 @@ class AuthService {
         user.role = ROLES.USER;
         await client.set(sessionId, JSON.stringify(user), 'EX', 3600);
 
-        const confirmationUrl = `https://localhost:${process.env.PORT}/auth/confirm/${confirmToken}`;
+        const confirmationUrl = `${config.app.apiBaseUrl}/auth/confirm/${confirmToken}`;
         await mailService.sendConfirmationEmail(user.email, user.username, confirmationUrl);
 
         return { username: user.username, confirmToken };
@@ -89,9 +91,10 @@ class AuthService {
         }
 
         await client.del(decoded.sessionId);
-        await userModel.add(user);
+        const addedUser = await userModel.add(user);
+        await mailService.sendThankYouEmail(user.email, user.username);
 
-        return user;
+        return addedUser;
     }
 
     static async refresh(refreshToken) {

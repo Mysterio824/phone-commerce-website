@@ -1,5 +1,3 @@
-const ROLES = require('../../application/enums/roles');
-
 const restrictTo = (...allowedRoles) => {
     return (req, res, next) => {
         if (!req.user || !req.user.role) {

@@ -1,11 +1,10 @@
 const jwt = require('jsonwebtoken');
-const CustomError = require('../../utils/cerror');
 const { client } = require('../../infrastructure/external/redisClient');
 const ROLES = require('../../application/enums/roles');
 const config = require('../../config');
 
 const checkUser = async (req, res, next) => {
-    const accessToken = req.cookies.accessToken;
+    const accessToken = req.cookies.accessToken || req.headers['authorization']?.split(' ')[1];
 
     if (!accessToken) {
         req.user = { role: ROLES.NON_USER };

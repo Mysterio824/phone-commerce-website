@@ -1,287 +1,175 @@
 const productsModel = require('../../infrastructure/database/models/product.m');
+const imageModel = require('../../infrastructure/database/models/productImage.m');
 const categoryService = require('./categoryService');
-const { client } = require('../../infrastructure/external/redisClient');
+const reviewService = require('./reviewService');
+const brandService = require('./brandService');
+const variantService = require('./variantService');
+const cacheService = require('../../infrastructure/external/cacheService').product;
+const productUtils = require('../utils/productUtils');
+const { validateProduct } = require('../validators/productValidator');
+const ProductFilterService = require('./productFilterService');
 
 const CACHE_KEYS = {
-    ALL_PRODUCTS: 'products:all',
-    PRODUCT_DETAIL: 'product:detail:', // Append product ID
-    RELATED_PRODUCTS: 'product:related:', // Append category ID
-    CATEGORY_FINDER: 'category:finder:' // Append category ID
+    ALL_PRODUCTS: 'all',
+    PRODUCT_DETAIL: 'detail:',
+    RELATED_PRODUCTS: 'related:',
 };
-  
+
+const filterService = new ProductFilterService(categoryService);
+
 const CACHE_TTL = {
     PRODUCTS: 120, // 2 minutes
     PRODUCT_DETAIL: 300, // 5 minutes
     CATEGORY_FINDER: 600 // 10 minutes
 };
-  
-async function findCategoryById(categories, catID) {
-    try {
-        // Check Redis cache first
-        const cacheKey = `${CACHE_KEYS.CATEGORY_FINDER}${catID}`;
-        const cachedResult = await client.get(cacheKey);
-        
-        if (cachedResult) {
-            return JSON.parse(cachedResult);
-        }
-        
-        // If not in cache, search through categories
-        let foundCategory = null;
-        
-        function searchCategory(cats, id) {
-            for (const category of cats) {
-                if (category.id === id) {
-                    return category;
-                }
-                
-                if (category.children && category.children.length > 0) {
-                    const found = searchCategory(category.children, id);
-                    if (found) {
-                        return found;
-                    }
-                }
-            }
-            return null;
-        }
-        
-        foundCategory = searchCategory(categories, catID);
-        
-        // Cache the result (even if null)
-        await client.set(
-            cacheKey,
-            JSON.stringify(foundCategory),
-            { EX: CACHE_TTL.CATEGORY_FINDER }
-        );
-        
-        return foundCategory;
-    } catch (error) {
-        console.error('Error in findCategoryById:', error);
-        
-        // Fallback to direct search if Redis fails
-        function searchCategory(cats, id) {
-            for (const category of cats) {
-                if (category.id === id) {
-                    return category;
-                }
-                
-                if (category.children && category.children.length > 0) {
-                    const found = searchCategory(category.children, id);
-                    if (found) {
-                        return found;
-                    }
-                }
-            }
-            return null;
-        }
-        
-        return searchCategory(categories, catID);
-    }
-}
+
 
 const productService = {
-    getFilteredProducts: async (filters) => {
-        const { page, per_page, min, max, sort, query, catID } = filters;
-        let currentPage = page;
-
-        // Get products from cache or database
-        let products;
+    getAllProducts: async () => {
         try {
-            const cachedProducts = await client.get(CACHE_KEYS.ALL_PRODUCTS);
-            
+            const cachedProducts = await cacheService.get(CACHE_KEYS.ALL_PRODUCTS);
+
             if (cachedProducts) {
-                products = JSON.parse(cachedProducts);
-            } else {
-                products = await productsModel.all();
-                
-                // Cache the products
-                await client.set(
-                    CACHE_KEYS.ALL_PRODUCTS,
-                    JSON.stringify(products),
-                    { EX: CACHE_TTL.PRODUCTS }
-                );
+                return cachedProducts;
             }
+
+            // Get all products from database
+            const products = await productsModel.all();
+
+            // Enrich products with additional data
+            const enrichedProducts = await Promise.all(
+                products.map(product => productUtils.enrichProduct(product))
+            );
+
+            // Cache the enriched products
+            await cacheService.set(CACHE_KEYS.ALL_PRODUCTS, enrichedProducts, CACHE_TTL.PRODUCTS);
+
+            return enrichedProducts;
         } catch (error) {
-            console.error('Redis error in getFilteredProducts:', error);
-            // Fallback to direct DB access
-            products = await productsModel.all();
+            console.error('Error in getAllProducts:', error);
+
+            // Fallback to database if caching fails
+            try {
+                const products = await productsModel.all();
+                return await Promise.all(products.map(product => productUtils.enrichProduct(product)));
+            } catch (fallbackError) {
+                console.error('Fallback error in getAllProducts:', fallbackError);
+                return [];
+            }
         }
-        
-        // Make a copy to avoid modifying cached data
-        products = [...products];
+    },
 
-        // Get category data
-        const categories = await categoryService.buildCategoryHierarchy();
-        const categoryMap = await categoryService.getCategoryMap();
-        
-        // Create searchable copy of the query (once, not per product)
-        const lowerQuery = query.toLowerCase();
-        
-        // Filter by category
-        if (catID !== 0) {
-            const selectedCategory = await findCategoryById(categories, catID);
-            if (!selectedCategory) {
-                return { message: "Category not found" };
-            }
-            
-            if (selectedCategory.children?.length > 0) {
-                // Pre-build a Set of child category IDs for O(1) lookups
-                const childCategoryIds = new Set();
-                for (const child of selectedCategory.children) {
-                    childCategoryIds.add(child.id);
-                }
-                
-                products = products.filter(item => 
-                    item.category_id && 
-                    (item.category_id === catID || childCategoryIds.has(item.category_id))
-                );
-            } else {
-                products = products.filter(item => item.category_id === catID);
-            }
-        }            
-
-        // Filter by price and search query
-        products = products.filter(item => {
-            // First check price range since it's a quick numeric comparison
-            if (item.price < min || item.price > max) {
-                return false;
-            }
-            
-            // Only perform string operations if price check passed
-            const itemName = item.name.toLowerCase();
-            if (itemName.includes(lowerQuery)) {
-                return true;
-            }
-            
-            // Only check category if needed
-            if (item.category_id) {
-                const category = categoryMap.get(item.category_id);
-                if (category && category.name.toLowerCase().includes(lowerQuery)) {
-                    return true;
-                }
-            }
-            
-            return false;
-        });
-        
-        // Sort products
-        const totalResults = products.length;
-        
-        if (sort === 'min') {
-            products.sort((a, b) => a.price - b.price);
-        } else if (sort === 'max') {
-            products.sort((a, b) => b.price - a.price);
-        }
-
-        // Calculate pagination
-        const total_pages = Math.ceil(totalResults / per_page);
-        
-        if (total_pages === 0 && currentPage === 1) {
-            return { 
-                page: currentPage, 
-                total_pages, 
-                per_page, 
-                products: [], 
-                category: categories, 
-                catID,
-                totalResults 
+    getFilteredProducts: async (filters = {}) => {
+        try {
+            const products = await productService.getAllProducts();
+            return await filterService.applyFilters(products, filters);
+        } catch (error) {
+            console.error('Error in getFilteredProducts:', error);
+            return {
+                message: "Error filtering products",
+                products: [],
+                page: 1,
+                totalPages: 1,
+                perPage: 10,
+                totalResults: 0,
+                error: error.message
             };
         }
-        
-        if (currentPage > total_pages) currentPage = total_pages;
-        
-        // Get only the items needed for current page
-        const startIdx = (currentPage - 1) * per_page;
-        const endIdx = Math.min(startIdx + per_page, totalResults);
-        const pagedProducts = products.slice(startIdx, endIdx);
-
-        return { 
-            category: categories, 
-            products: pagedProducts, 
-            page: currentPage, 
-            total_pages, 
-            catID,
-            totalResults
-        };
     },
 
     getProductDetail: async (productId) => {
         try {
-            // Try to get product from cache
             const productCacheKey = `${CACHE_KEYS.PRODUCT_DETAIL}${productId}`;
-            const cachedProduct = await client.get(productCacheKey);
-            
+            const cachedProduct = await cacheService.get(productCacheKey);
+
             let product;
             if (cachedProduct) {
-                product = JSON.parse(cachedProduct);
+                product = cachedProduct;
             } else {
                 product = await productsModel.one('id', productId);
-                
-                if (product) {
-                    // Cache the product
-                    await client.set(
-                        productCacheKey,
-                        JSON.stringify(product),
-                        { EX: CACHE_TTL.PRODUCT_DETAIL }
-                    );
-                } else {
+
+                if (!product) {
                     return { product: null };
                 }
+
+                // Enrich the product with additional data
+                product = await productUtils.enrichProduct(product);
+
+                await cacheService.set(productCacheKey, product, CACHE_TTL.PRODUCT_DETAIL);
             }
-            
-            // Try to get related products from cache
-            const relatedCacheKey = `${CACHE_KEYS.RELATED_PRODUCTS}${product.category_id}`;
-            const cachedRelated = await client.get(relatedCacheKey);
-            
-            let relativeProducts;
+
+            // Get related products
+            const relatedCacheKey = `${CACHE_KEYS.RELATED_PRODUCTS}${product.cateId}`;
+            let relatedProducts;
+            const cachedRelated = await cacheService.get(relatedCacheKey);
+
             if (cachedRelated) {
-                relativeProducts = JSON.parse(cachedRelated);
+                relatedProducts = cachedRelated;
             } else {
-                relativeProducts = await productsModel.allWithCondition(
-                    'category_id', 
-                    product.category_id
+                // Get related products by category
+                const categoryProducts = await productsModel.some('cateId', product.cateId);
+
+                // Exclude current product
+                const filteredProducts = categoryProducts.filter(p => p.id !== parseInt(productId));
+
+                // Enrich with ratings and images
+                relatedProducts = await Promise.all(
+                    filteredProducts.map(async (relatedProduct) => {
+                        // Get product rating
+                        const { average } = await reviewService.getRating(relatedProduct.id) ?? { average: 0 };
+                        relatedProduct.rating = average;
+
+                        // Get product images
+                        const images = await imageModel.some(relatedProduct.id) ?? [];
+                        relatedProduct.images = images;
+
+                        return relatedProduct;
+                    })
                 );
-                
-                // Cache the related products
-                await client.set(
-                    relatedCacheKey,
-                    JSON.stringify(relativeProducts),
-                    { EX: CACHE_TTL.PRODUCT_DETAIL }
-                );
+
+                await cacheService.set(relatedCacheKey, relatedProducts, CACHE_TTL.PRODUCT_DETAIL);
             }
-            
-            return { product, relativeProducts };
+
+            return { product, relatedProducts };
         } catch (error) {
-            console.error('Redis error in getProductDetail:', error);
-            
+            console.error(`Error in getProductDetail for product ${productId}:`, error);
+
             // Fallback to direct database access
-            const product = await productsModel.one('id', productId);
-            
-            if (!product) {
-                return { product: null };
+            try {
+                const product = await productsModel.one('id', productId);
+                if (!product) return { product: null };
+
+                // Enrich the product
+                const enrichedProduct = await productUtils.enrichProduct(product);
+
+                // Get related products
+                const categoryProducts = await productsModel.some('cateId', product.cateId);
+
+                // Exclude current product and limit to 10 related items
+                const relatedProducts = await Promise.all(
+                    categoryProducts
+                        .filter(p => p.id !== parseInt(productId))
+                        .slice(0, 10)
+                        .map(async (related) => {
+                            const { average } = await reviewService.getRating(related.id) ?? { average: 0 };
+                            related.rating = average;
+                            const images = await imageModel.some(related.id) ?? [];
+                            related.images = images;
+                            return related;
+                        })
+                );
+
+                return { product: enrichedProduct, relatedProducts };
+            } catch (fallbackError) {
+                console.error(`Fallback error in getProductDetail for product ${productId}:`, fallbackError);
+                return { product: null, error: error.message };
             }
-            
-            const relativeProducts = await productsModel.allWithCondition(
-                'category_id', 
-                product.category_id
-            );
-            
-            return { product, relativeProducts };
         }
     },
 
-    // Clear cached data when products are modified
     invalidateCache: async () => {
         try {
-            // Get all keys matching products:* pattern
-            const productKeys = await client.keys(`${CACHE_KEYS.ALL_PRODUCTS}*`);
-            const detailKeys = await client.keys(`${CACHE_KEYS.PRODUCT_DETAIL}*`);
-            const relatedKeys = await client.keys(`${CACHE_KEYS.RELATED_PRODUCTS}*`);
-            
-            // Delete all matched keys
-            const allKeys = [...productKeys, ...detailKeys, ...relatedKeys];
-            if (allKeys.length > 0) {
-                await client.del(allKeys);
-            }
+            await cacheService.delByPattern('*');
         } catch (error) {
             console.error('Error invalidating product cache:', error);
         }
@@ -289,8 +177,30 @@ const productService = {
 
     addProduct: async (productData) => {
         try {
+            // Validate product data
+            const validation = validateProduct(productData);
+            if (!validation.Valid) {
+                throw new Error(`Invalid product data: ${validation.errors.join(', ')}`);
+            }
+
+            // Check if category exists if provided
+            if (productData.cateId) {
+                const category = await categoryService.getCategoryById(productData.cateId);
+                if (!category) {
+                    throw new Error('Category does not exist');
+                }
+            }
+
+            // Check if brand exists if provided
+            if (productData.brandId) {
+                const brand = await brandService.getBrandById(productData.brandId);
+                if (!brand) {
+                    throw new Error('Brand does not exist');
+                }
+            }
+
             const result = await productsModel.add(productData);
-            await module.exports.invalidateCache();
+            await productService.invalidateCache();
             return result;
         } catch (error) {
             console.error('Error adding product:', error);
@@ -300,18 +210,37 @@ const productService = {
 
     updateProduct: async (productData) => {
         try {
-            const result = await productsModel.edit(productData);
-            await module.exports.invalidateCache();
-            
-            // Also invalidate specific product cache
-            if (result && result.id) {
-                await client.del(`${CACHE_KEYS.PRODUCT_DETAIL}${result.id}`);
-                
-                if (result.category_id) {
-                    await client.del(`${CACHE_KEYS.RELATED_PRODUCTS}${result.category_id}`);
+            // Check if product exists
+            const existingProduct = await productsModel.one('id', productData.id);
+            if (!existingProduct) {
+                throw new Error('Product does not exist');
+            }
+
+            // Validate product data
+            const validation = validateProduct(productData);
+            if (!validation.Valid) {
+                throw new Error(`Invalid product data: ${validation.errors.join(', ')}`);
+            }
+
+            // Check if category exists if provided
+            if (productData.cateId) {
+                const category = await categoryService.getCategoryById(productData.cateId);
+                if (!category) {
+                    throw new Error('Category does not exist');
                 }
             }
-            
+
+            // Check if brand exists if provided
+            if (productData.brandId) {
+                const brand = await brandService.getBrandById(productData.brandId);
+                if (!brand) {
+                    throw new Error('Brand does not exist');
+                }
+            }
+
+            const result = await productsModel.edit(productData);
+            await productService.invalidateCache();
+
             return result;
         } catch (error) {
             console.error('Error updating product:', error);
@@ -321,18 +250,19 @@ const productService = {
 
     deleteProduct: async (productId) => {
         try {
+            // Check if product exists
             const product = await productsModel.one('id', productId);
-            const result = await productsModel.delete(productId);
-            
-            await module.exports.invalidateCache();
-            
-            // Also invalidate specific product cache
-            await client.del(`${CACHE_KEYS.PRODUCT_DETAIL}${productId}`);
-            
-            if (product && product.category_id) {
-                await client.del(`${CACHE_KEYS.RELATED_PRODUCTS}${product.category_id}`);
+            if (!product) {
+                throw new Error('Product does not exist');
             }
-            
+
+            const result = await productsModel.delete(productId);
+
+            await productService.invalidateCache();
+
+            // Invalidate variant cache
+            await variantService.invalidateProductVariantsCache(productId);
+
             return result;
         } catch (error) {
             console.error('Error deleting product:', error);

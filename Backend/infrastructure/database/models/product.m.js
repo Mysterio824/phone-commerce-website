@@ -1,28 +1,18 @@
 const db = require('../db');
-const tbName = 'products';
-const referencedTBName = 'categories';
+const tbName = 'ProductVariants';
 const idFieldTB = 'id';
-const idFieldReferencedTB = 'category_id';
 
-const productModel = {
+const variantModel = {
     all: async () => {
         const products = await db.all(tbName);
         return products;
     },
-    allWithCondition: async (idField, idValue) => {
-        const products = await db.allWithCondition(tbName, idField, idValue);
-        return products;
-    },
-    allWithCategoryInfo: async () => {
-        const products = await db.allWithRelationship(tbName, referencedTBName, idFieldTB, idFieldReferencedTB);
+    some: async (idField, idValue) => {
+        const products = await db.some(tbName, idField, idValue);
         return products;
     },
     one: async (idField, idValue) => {
         const product = await db.one(tbName, idField, idValue);
-        return product;
-    },
-    oneWithCategoryInfo: async (idField, idValue) => {
-        const product = await db.oneWithRelationship(tbName, referencedTBName, idFieldTB, idFieldReferencedTB, idField, idValue);
         return product;
     },
     add: async product => {
@@ -33,10 +23,10 @@ const productModel = {
         const p = await db.edit(tbName, product);
         return p;
     },
-    delete: async (idValue) => {
+    delete: async idValue => {
         const rs = await db.delete(tbName, idFieldTB, idValue);
         return rs;
     }
 };
 
-module.exports = productModel;
+module.exports = variantModel;

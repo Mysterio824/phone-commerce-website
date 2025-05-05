@@ -1,12 +1,12 @@
 const passport = require('passport');
 const AuthService = require('../../application/services/authService');
 const CustomError = require('../../utils/cerror');
-const config = require('../../config'); // Import config to use CLIENT_URL
+const config = require('../../config');
 
 const CLIENT_URL = config.app.clientUrl;
 const OAUTH_SUCCESS_REDIRECT = `${CLIENT_URL}/login?oauth_success=true`;
 const OAUTH_FAILURE_REDIRECT = `${CLIENT_URL}/login?oauth_error=true`;
-const VERIFY_SUCCESS_REDIRECT = `${CLIENT_URL}/verification-success`;
+const VERIFY_SUCCESS_REDIRECT = `${CLIENT_URL}/auth/verification-success`;
 
 const authController = {
     logout: async (req, res) => {
@@ -108,6 +108,15 @@ const authController = {
             res.status(error.statusCode || 500).json({ message: error.message || 'Token refresh failed.' });
         }
     },
+
+    me: async (req, res) => {
+        try {
+            const user = req.user;
+            res.status(200).json({ data: user });
+        } catch (error) {
+            next(error);  
+        }
+    }
 };
 
 module.exports = authController;

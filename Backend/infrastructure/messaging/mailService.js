@@ -58,6 +58,25 @@ class MailService {
         `;
         return await this.sendEmail(to, subject, text, html);
     }
+
+    async sendThankYouEmail(to, username) {
+        const subject =  "Your Account Information"
+        const text =  `Welcome to our app, ${username}! Here are your payment account details:`
+        const html =`
+                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                    <h2 style="color: #333;">Welcome to Our App!</h2>
+                    <p>Dear ${username},</p>
+                    <p>Here are your account details:</p>
+                    <ul>
+                        <li><strong>Username:</strong> ${username}</li>
+                        <li><strong>Email:</strong> ${to}</li>
+                        <li><strong>Password </strong> is Your main account password </li>
+                    </ul>
+                    
+                    <p>Best regards,<br>Your App Team</p>
+                </div>`
+        return await this.sendEmail(to, subject, text, html);
+    }
 }
 
 module.exports = new MailService();

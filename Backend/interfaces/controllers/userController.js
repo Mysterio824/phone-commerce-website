@@ -1,5 +1,4 @@
 const UserService = require('../../application/services/userService');
-const CartModel = require('../../infrastructure/database/models/cart.m');
 const CustomError = require('../../utils/cerror');
 const ROLES = require('../../application/enums/roles');
 
@@ -93,23 +92,23 @@ const UserController = {
                 return res.status(401).json({ message: "Unauthorized: Authentication required." });
             }
 
-            let cart = await CartModel.one('user_id', user.uid);
+            // let cart = await CartModel.one('user_id', user.uid);
 
-            if (!cart || cart.items?.length === 0) {
-                 console.log(`Checkout attempt for user ${user.uid} with no cart or empty cart.`);
-                 return res.status(200).json({ success: true, cart: null, message: "Cart is empty or not found." });
-            }
+            // if (!cart || cart.items?.length === 0) {
+            //      console.log(`Checkout attempt for user ${user.uid} with no cart or empty cart.`);
+            //      return res.status(200).json({ success: true, cart: null, message: "Cart is empty or not found." });
+            // }
 
-            cart.total_price_formatted = new Intl.NumberFormat('en-US', {
-                style: 'decimal',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(cart.total_price || 0);
+            // cart.total_price_formatted = new Intl.NumberFormat('en-US', {
+            //     style: 'decimal',
+            //     minimumFractionDigits: 2,
+            //     maximumFractionDigits: 2
+            // }).format(cart.total_price || 0);
 
-            res.status(200).json({
-                success: true,
-                cart: cart, 
-             });
+            // res.status(200).json({
+            //     success: true,
+            //     cart: cart, 
+            //  });
         } catch (error) {
             console.error('Error getting checkout page:', error);
             next(new CustomError(error.statusCode || 500, error.message || 'Failed to load checkout page.'));

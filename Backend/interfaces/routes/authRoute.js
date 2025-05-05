@@ -8,5 +8,6 @@ router.post('/signup', authController.signup);
 router.get('/logout', authController.logout);
 router.post('/refresh-token', authController.refresh);
 router.get('/confirm/:token', authController.verifyAccount);
+router.get('/me', authController.me);
 
 module.exports = router;

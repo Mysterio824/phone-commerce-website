@@ -1,52 +1,24 @@
 const cartService = require('../../application/services/cartService');
 const CustomError = require('../../utils/cerror');
-const { success } = require('../passport/strategies/loginStrategy');
 
 const cartController = {
-    getCart: async (req, res, next) => {
-        try {
-            const user = req.user;
-            if (!user) {
-                return res.redirect('/auth');
-            }
-
-            const cart = await cartService.getOrCreateCart(user.id);
-            
-            // Format the total price for display
-            cart.total_price = new Intl.NumberFormat('en-US', {
-                style: 'decimal',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(cart.total_price);
-
-            res.status(200).json({ data: { cart } });
-        } catch (error) {
-            console.error(error.message);
-            next(new CustomError(500, 'Failed to fetch cart data.'));
-        }
-    },
-
     getCartData: async (req, res, next) => {
-        try {
+        try {            
             let page = parseInt(req.body.page || 1);
-            if (page < 1) {
+            const user = req.user;
+            if (page < 1 || !user) {
                 return next(new CustomError(404, "Your page can't be found"));
-            }
-            
-            const uid = req.body.uid;
-            if (!uid) {
-                return res.redirect('/auth');
-            }
-            
-            const per_page = parseInt(req.body.per_page) || 5;
+            }            
+            const uid = user.uid;
+            const perPage = parseInt(req.body.perPage) || 5;
 
-            const { formattedCart, total_pages } = await cartService.getFormattedCartData(uid, page, per_page);
+            const { formattedCart, totalPages } = await cartService.getFormattedCartData(uid, page, perPage);
             
-            if (total_pages === 0 && page === 1) {
-                return res.json({ page, total_pages, per_page, cart: formattedCart });
-            }
+            if (totalPages === 0 && page === 1) {
+                return res.json({ page, totalPages, per_page, cart: formattedCart });
+            }            
             
-            res.statsu(200).json({ data: { cart: formattedCart, page, total_pages, per_page }});
+            res.status(200).json({ data: { cart: formattedCart, page, totalPages, perPage }});
         } catch (error) {
             console.error(error.message);
             next(new CustomError(500, 'Failed to fetch cart data.'));
@@ -55,10 +27,10 @@ const cartController = {
 
     addProduct: async (req, res, next) => {
         try {
-            const { uid } = req.body;
-            if (!uid) {
-                return res.redirect('/auth');
-            }
+            if (!req.user) {
+                return res.status(401).json({ message: 'Unauthorized. Please log in.' });
+            }            
+            const uid = req.user.uid;
 
             const productId = parseInt(req.body.productId);
             const { quantity } = req.body;
@@ -79,11 +51,12 @@ const cartController = {
 
     updateProduct: async (req, res, next) => {
         try {
-            const uid = req.body.uid;
-            if (!uid) {
-                return res.redirect('/auth');
+            if (!req.user) {
+                return res.status(401).json({ message: 'Unauthorized. Please log in.' });
             }
             
+            const uid = req.user.uid;
+
             const productId = parseInt(req.body.productId);
             const { quantity } = req.body;
             if (!productId || quantity < 0) {
@@ -103,10 +76,11 @@ const cartController = {
 
     deleteProduct: async (req, res, next) => {
         try {
-            const uid = req.body.uid;
-            if (!uid) {
-                return res.redirect('/auth');
+            if (!req.user) {
+                return res.status(401).json({ message: 'Unauthorized. Please log in.' });
             }
+            
+            const uid = req.user.uid;
 
             const productId = parseInt(req.body.productId);
             if (!productId) {

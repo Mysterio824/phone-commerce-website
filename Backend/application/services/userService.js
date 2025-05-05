@@ -12,7 +12,6 @@ class UserService {
         return user;
     }
 
-    
     async updateUserInformation(userId, newUsername, newEmail) {
         if (!userId || !newUsername || !newEmail) {
             throw new CustomError(400, 'User ID, username, and email are required.');
@@ -90,7 +89,7 @@ class UserService {
             throw new CustomError(400, 'User ID is required for deletion.');
         }
 
-        const result = await userModel.delete('uid', userIdToDelete);
+        const result = await userModel.delete(userIdToDelete);
 
         if (!result) {
             throw new CustomError(404, 'User not found for deletion.');

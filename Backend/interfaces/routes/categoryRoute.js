@@ -1,4 +1,6 @@
 const categoryController = require('../controllers/categoryController');
+const restrictTo= require('../middlewares/JwtMiddleware');
+const ROLES = require('../../application/enums/roles');
 
 const router = require('express').Router();
 router.put('/edit', categoryController.putEditCategory);

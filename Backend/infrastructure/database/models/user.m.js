@@ -1,5 +1,6 @@
 const db = require('../db');
-const tbName = 'users';
+const tbName = 'Users';
+const idFieldTB = 'uid';
 const ROLES = require('../../../application/enums/roles');
 
 const userModel = {
@@ -21,8 +22,8 @@ const userModel = {
         const u = await db.edit(tbName, user);
         return u;
     },
-    delete: async (idField, idValue) => {
-        const rs = await db.delete(tbName, idField, idValue);
+    delete: async idValue => {
+        const rs = await db.delete(tbName, idFieldTB, idValue);
         return rs;
     }
 };

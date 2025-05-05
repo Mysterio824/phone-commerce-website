@@ -2,7 +2,7 @@ const OAuth2Strategy = require('passport-oauth2').Strategy;
 const jwt = require('jsonwebtoken');
 const { v5: uuidv5 } = require('uuid');
 const userModel = require('../../../infrastructure/database/models/user.m');
-const { hashPassword: hashPassword } = require('../../../utils/hashUtils');
+const { hashPassword } = require('../../../utils/hashUtils');
 const crypto = require('crypto');
 
 module.exports = new OAuth2Strategy(

@@ -6,7 +6,6 @@ const config = require('../../config');
 const CLIENT_URL = config.app.clientUrl;
 const OAUTH_SUCCESS_REDIRECT = `${CLIENT_URL}/login?oauth_success=true`;
 const OAUTH_FAILURE_REDIRECT = `${CLIENT_URL}/login?oauth_error=true`;
-const VERIFY_SUCCESS_REDIRECT = `${CLIENT_URL}/auth/verification-success`;
 
 const authController = {
     logout: async (req, res) => {
@@ -66,7 +65,7 @@ const authController = {
             } catch (error) {
                 next(error);
             }
-        })(req, res, next);
+        }) (req, res, next);
     },
 
     signup: (req, res, next) => {
@@ -83,14 +82,14 @@ const authController = {
             } catch (error) {
                 next(error);
             }
-        })(req, res, next);
+        }) (req, res, next);
     },
 
     verifyAccount: async (req, res, next) => {
         try {
-            const { token } = req.params;
-            await AuthService.verifyAccount(token);
-            res.redirect(VERIFY_SUCCESS_REDIRECT);
+            const { verificationCode } = req.body;
+            await AuthService.verifyAccount(verificationCode);
+            res.status(200).json({ message: 'Account verified successfully.' });
         } catch (error) {
             next(new CustomError(error.statusCode || 404, error.message));
         }

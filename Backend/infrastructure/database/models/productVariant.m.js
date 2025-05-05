@@ -1,10 +1,11 @@
 const db = require('../db');
-const tbName = 'Variants';
+const tbName = 'ProductVariants';
 const idFieldTB = 'id';
+const idFieldTB2 = 'productId';
 
-const brandModel = {
+const variantModel = {
     all: async (productId) => {
-        return await db.some(tbName, 'productId', productId);
+        return await db.some(tbName, idFieldTB2, productId);
     },
     one: async idValue => {
         return await db.one(tbName, idFieldTB, idValue);
@@ -20,4 +21,4 @@ const brandModel = {
     }
 };
 
-module.exports = brandModel;
+module.exports = variantModel;

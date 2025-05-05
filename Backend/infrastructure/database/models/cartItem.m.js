@@ -1,7 +1,7 @@
 const db = require('../db');
 const tbName = 'CartItems';
 const idFieldTB = 'id';
-const idFieldTB2 = 'userId';
+const idFieldTB2 = 'cartId';
 
 const cartItemModel= {
     all: async uid => {
@@ -11,7 +11,7 @@ const cartItemModel= {
         return await db.one(tbName, idFieldTB, idValue);
     },
     some: async (uid, page, perPage) => {
-        return await db.some(tbName, idFieldTB, uid, page, perPage);
+        return await db.some(tbName, idFieldTB2, uid, page, perPage);
     },
     add: async item => {
         return await db.add(tbName, item);

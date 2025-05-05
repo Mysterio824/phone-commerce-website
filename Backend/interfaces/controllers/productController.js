@@ -5,15 +5,16 @@ const productController = {
     getProducts: async (req, res, next) => {
         try {
             const filters = {
-                page: parseInt(req.body.page || 1),
-                per_page: parseInt(req.body.per_page || 5),
-                min: parseInt(req.body.min || 0),
-                max: parseInt(req.body.max || Infinity),
-                rating: parseInt(req.body.rating || 0),
-                sort: req.body.sort || 'none',
+                page: req.body.page,
+                perPage: req.body.perPage,
+                min: req.body.min,
+                max: req.body.max,
+                sort: req.body.sort,
                 query: req.cookies.search_query || '',
-                catID: parseInt(req.body.catID || 0)
-            };
+                cateId: req.body.cateId || 0,
+                rating: req.body.rating,
+                brandId: req.body.brandId || 0
+            }
 
             const result = await productService.getFilteredProducts(filters);
             res.status(200).json({
@@ -39,7 +40,7 @@ const productController = {
                 message: "Product detail fetched successfully",
                 data: {
                     product: result.product, 
-                    relativeProducts: result.relativeProducts
+                    relativeProducts: result.relativeProducts || [],
                 },
 
             });

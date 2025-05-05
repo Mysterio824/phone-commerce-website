@@ -1,5 +1,5 @@
 const MyStrategy = require('./MyStrategy');
-const { comparePassword: comparePassword } = require('../../../utils/hashUtils');
+const { comparePassword } = require('../../../utils/hashUtils');
 const userModel = require('../../../infrastructure/database/models/user.m');
 
 module.exports = new MyStrategy('loginStrategy', async (username, password, email, done) => {

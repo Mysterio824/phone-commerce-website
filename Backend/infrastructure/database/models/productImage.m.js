@@ -9,7 +9,7 @@ const imageModel = {
     },
     some: async idValue => {
         const res = await db.some(tbName, idFieldTB2, idValue);
-        const imageUrls = res.map(item => item.imageUrl);
+        const imageUrls = res.map(item => item.imageurl);
         return imageUrls;
     },
     one: async idValue => {

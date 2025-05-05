@@ -10,7 +10,7 @@ class ProductFilterService {
     const validatedFilters = validateFilters(filters);
     const {
       page, perPage, min, max, sort, query,
-      catID, rating, brandId
+      cateId, rating, brandId
     } = validatedFilters;
 
     const categories = await this.categoryService.buildCategoryHierarchy();
@@ -19,7 +19,7 @@ class ProductFilterService {
     let filteredProducts = [...products];
 
     try {
-      filteredProducts = await _filterByCategory(filteredProducts, catID);
+      filteredProducts = await this._filterByCategory(filteredProducts, cateId);
       if (!filteredProducts) {
         return this._createEmptyResponse(categories, validatedFilters);
       }
@@ -33,7 +33,7 @@ class ProductFilterService {
       filteredProducts = this._filterBySearchQuery(filteredProducts, query, categoryMap);
 
       // Apply sorting
-      filteredProducts = _sortProducts(filteredProducts, sort);
+      filteredProducts = this._sortProducts(filteredProducts, sort);
 
       // Handle pagination and results
       return this._prepareResponse(filteredProducts, categories, validatedFilters);
@@ -44,7 +44,7 @@ class ProductFilterService {
   }
 
   _filterByBrand(products, brandId) {
-    return products.filter(item => item.brandId === brandId);
+    return products.filter(item => item.brandid === brandId);
   }
 
   _filterByPrice(products, min, max) {
@@ -71,8 +71,8 @@ class ProductFilterService {
       if (item.description && item.description.toLowerCase().includes(query)) return true;
 
       // Search in category
-      if (item.cateId) {
-        const category = categoryMap.get(item.cateId);
+      if (item.cateid) {
+        const category = categoryMap.get(item.cateid);
         if (category && category.name.toLowerCase().includes(query)) return true;
       }
 
@@ -84,26 +84,28 @@ class ProductFilterService {
   }
 
   async _filterByCategory(products, cateId) {
-    if (cateId !== 0) {
-      const selectedCategory = await this.categoryService.findCategoryById(cateId);
-      if (!selectedCategory) {
-        return null;
-      }
-
-      if (selectedCategory.children?.length > 0) {
-        const childCategoryIds = new Set();
-        for (const child of selectedCategory.children) {
-          childCategoryIds.add(child.id);
-        }
-
-        return products.filter(item =>
-          item.cateId &&
-          (item.cateId === cateId || childCategoryIds.has(item.cateId))
-        );
-      } else {
-        return products.filter(item => item.cateId === cateId);
-      }
+    if (cateId === 0) {
+      return products;
     }
+
+    const selectedCategory = await this.categoryService.findCategoryById(cateId);
+    if (!selectedCategory) {
+      return null;
+    }
+
+    if (selectedCategory.children?.length > 0) {
+      const childCategoryIds = new Set();
+      for (const child of selectedCategory.children) {
+        childCategoryIds.add(child.id);
+      }
+
+      return products.filter(item =>
+        item.cateid &&
+        (item.cateid === cateId || childCategoryIds.has(item.cateid))
+      );
+    } else {
+      return products.filter(item => item.cateid === cateId);
+    } 
   }
 
   _sortProducts(products, sortType) {
@@ -140,7 +142,7 @@ class ProductFilterService {
   }
 
   _prepareResponse(products, categories, filters) {
-    const { page, perPage, catID, min, max, sort, query, rating, brandId } = filters;
+    const { page, perPage, cateId, min, max, sort, query, rating, brandId } = filters;
     const totalResults = products.length;
 
     // Handle empty results
@@ -157,10 +159,9 @@ class ProductFilterService {
       products: pagedProducts,
       page: currentPage,
       totalPages,
-      catID,
       totalResults,
       perPage,
-      filters: { min, max, sort, query, rating, brandId }
+      filters: { min, max, sort, query, rating, brandId, cateId }
     };
   }
 

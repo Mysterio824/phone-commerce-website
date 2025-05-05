@@ -40,43 +40,132 @@ class MailService {
         }
     }
 
-    async sendConfirmationEmail(to, username, confirmationUrl) {
-        const subject = 'Confirm Your Email';
-        const text = `Please confirm your email by clicking the following link: ${confirmationUrl}`;
+    async sendConfirmationEmail(to, username, code) {
+        const subject = 'Verify Your PhoneEcommerce Account';
+
+        const text = `
+        Hello ${username},
+
+        Thanks for signing up with PhoneEcommerce! Use the verification code below to complete your registration:
+
+        ${code}
+
+        This code will expire in 10 minutes.
+
+        - The PhoneEcommerce Team
+            `.trim();
+
         const html = `
-            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                <h2 style="color: #333;">Confirm Your Email</h2>
-                <p>Dear ${username},</p>
-                <p>
-                    Thank you for registering with our app. To complete your registration, please confirm your account by clicking
-                    <a href="${confirmationUrl}" style="color: #1a73e8; text-decoration: none;">here!</a>
-                </p>
-                <p>If the link above does not work, please copy and paste the following URL into your browser:</p>
-                <p style="color: #1a73e8;">${confirmationUrl}</p>
-                <p>Best regards,<br>Your App Team</p>
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Verify Your PhoneEcommerce Account</title>
+            <style>
+                body {
+                font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                color: #1c1e21;
+                background-color: #f0f2f5;
+                }
+                .email-container {
+                max-width: 600px;
+                margin: 0 auto;
+                background-color: #ffffff;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+                }
+                .email-header {
+                background-color: #1877f2;
+                padding: 20px;
+                text-align: center;
+                }
+                .logo {
+                font-size: 24px;
+                font-weight: bold;
+                color: white;
+                }
+                .email-body {
+                padding: 20px;
+                line-height: 1.5;
+                }
+                .verification-code {
+                font-size: 32px;
+                font-weight: bold;
+                letter-spacing: 4px;
+                margin: 20px 0;
+                text-align: center;
+                color: #1877f2;
+                }
+                .email-footer {
+                padding: 15px 20px;
+                text-align: center;
+                font-size: 12px;
+                color: #65676b;
+                border-top: 1px solid #e4e6eb;
+                }
+                .security-notice {
+                background-color: #f0f2f5;
+                padding: 10px;
+                border-radius: 6px;
+                font-size: 12px;
+                margin-top: 20px;
+                }
+            </style>
+            </head>
+            <body>
+            <div class="email-container">
+                <div class="email-header">
+                <div class="logo">PhoneEcommerce</div>
+                </div>
+                <div class="email-body">
+                <h2>Account Verification</h2>
+                <p>Hello <strong>${username}</strong>,</p>
+                <p>Thanks for signing up with PhoneEcommerce! Please use the verification code below to complete your registration:</p>
+                <div class="verification-code">${code}</div>
+                <p>Enter this code in the app to verify your account.</p>
+                <div class="security-notice">
+                    <strong>Security Tip:</strong> For your protection, this code will expire in 10 minutes.
+                </div>
+                </div>
+                <div class="email-footer">
+                <p>© ${new Date().getFullYear()} PhoneEcommerce. All rights reserved.</p>
+                <p>This is an automated message, please do not reply.</p>
+                </div>
             </div>
-        `;
+            </body>
+            </html>
+            `;
+
         return await this.sendEmail(to, subject, text, html);
     }
 
     async sendThankYouEmail(to, username) {
-        const subject =  "Your Account Information"
-        const text =  `Welcome to our app, ${username}! Here are your payment account details:`
-        const html =`
-                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                    <h2 style="color: #333;">Welcome to Our App!</h2>
-                    <p>Dear ${username},</p>
-                    <p>Here are your account details:</p>
-                    <ul>
-                        <li><strong>Username:</strong> ${username}</li>
-                        <li><strong>Email:</strong> ${to}</li>
-                        <li><strong>Password </strong> is Your main account password </li>
-                    </ul>
-                    
-                    <p>Best regards,<br>Your App Team</p>
-                </div>`
+        const subject = "Welcome to Our App!";
+        const text = `Hi ${username},\n\nWelcome to our platform! Your account has been successfully created.\n\nIf you have any questions or need support, feel free to reach out.\n\nThanks,\nThe Team`;
+    
+        const html = `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <h2 style="color: #1a73e8;">Welcome to Our App!</h2>
+                <p>Hi <strong>${username}</strong>,</p>
+                <p>We're excited to have you on board! Your account has been successfully created.</p>
+                <p>Here's your account summary:</p>
+                <ul>
+                    <li><strong>Username:</strong> ${username}</li>
+                    <li><strong>Email:</strong> ${to}</li>
+                </ul>
+                <p>If you ever forget your password, you can reset it from the login page.</p>
+                <p>Need help? Just reply to this email—we're here for you.</p>
+                <br>
+                <p>Cheers,<br>The Team</p>
+            </div>
+        `;
+    
         return await this.sendEmail(to, subject, text, html);
-    }
+    }    
 }
 
 module.exports = new MailService();

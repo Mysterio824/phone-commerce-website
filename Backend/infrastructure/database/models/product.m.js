@@ -1,8 +1,8 @@
 const db = require('../db');
-const tbName = 'ProductVariants';
+const tbName = 'Products';
 const idFieldTB = 'id';
 
-const variantModel = {
+const productModel = {
     all: async () => {
         const products = await db.all(tbName);
         return products;
@@ -29,4 +29,4 @@ const variantModel = {
     }
 };
 
-module.exports = variantModel;
+module.exports = productModel;

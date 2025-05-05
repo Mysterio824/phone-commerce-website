@@ -1,7 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const passport = require('./interfaces/passport/passport');
-const { shutdown: redisShutdown, client: redisClient } = require('./infrastructure/external/redisClient');
+const { shutdown: redisShutdown } = require('./infrastructure/external/redisClient');
 const { exec } = require('child_process');
 const util = require('util');
 const cookieParser = require('cookie-parser');
@@ -50,6 +50,21 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/categories', categoryRoutes);
 
+// Global error handling middleware - must be after all routes
+app.use((err, req, res, next) => {
+    console.error('Error caught by global error handler:', err);
+    
+    const statusCode = err.statusCode || 500;
+    const message = err.message || 'Internal Server Error';
+    
+    // Return a JSON response instead of an HTML page
+    res.status(statusCode).json({
+        success: false,
+        message: message,
+        stack: config.app.environment === 'development' ? err.stack : undefined
+    });
+});
+
 const execPromise = util.promisify(exec);
 
 const startServer = async () => {
@@ -62,19 +77,18 @@ const startServer = async () => {
             process.exit(1);
         }
             
-            // Start the server
-            const PORT = config.app.port;
+        const PORT = config.app.port;
 
-            const server = https.createServer({ 
-                key: fs.readFileSync(path.join(__dirname, '/certs/ca.key')), 
-                cert: fs.readFileSync(path.join(__dirname, '/certs/ca.crt')),
-              }, app);
-            
-            server.listen(PORT, () => {
-                console.log(`Server running on port ${PORT} in ${config.app.environment} mode`);
-            }); 
+        const server = https.createServer({ 
+            key: fs.readFileSync(path.join(__dirname, '/certs/ca.key')), 
+            cert: fs.readFileSync(path.join(__dirname, '/certs/ca.crt')),
+          }, app);
+        
+        server.listen(PORT, () => {
+            console.log(`Server running on port ${PORT} in ${config.app.environment} mode`);
+        }); 
 
-            // Graceful Shutdown Logic
+        // Graceful Shutdown Logic
         const shutdown = async () => {
             console.log('Shutting down server...');
             try {
@@ -115,7 +129,6 @@ const startServer = async () => {
     }
 };
   
-  // Start the server
 startServer();
 
 module.exports = app;

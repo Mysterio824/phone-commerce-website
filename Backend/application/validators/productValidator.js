@@ -24,7 +24,7 @@ const productValidator = {
           max: parseFloat(filters.max) > 0 ? parseFloat(filters.max) : Infinity,
           sort: ['min', 'max', 'rating', 'newest'].includes(filters.sort) ? filters.sort : '',
           query: (filters.query || '').toString().toLowerCase(),
-          catID: parseInt(filters.catID) || 0,
+          cateId: parseInt(filters.cateId) || 0,
           rating: Math.max(0, Math.min(5, parseFloat(filters.rating) || 0)),
           brandId: parseInt(filters.brandId) || 0
         }

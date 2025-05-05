@@ -131,10 +131,10 @@ const reviewService = {
             }
             
             const result = await reviewModel.add(reviewData);
-            await reviewService.invalidateCache(reviewData.productId);
+            await reviewService.invalidateCache(reviewData.productid);
             
             // Force update of the product rating
-            await reviewService.getRating(reviewData.productId, true);
+            await reviewService.getRating(reviewData.productid, true);
             
             return result;
         } catch (error) {
@@ -158,15 +158,15 @@ const reviewService = {
             }
             
             // Check if user owns the review
-            if (existingReview.userId !== reviewData.userId) {
+            if (existingReview.userid !== reviewData.userid) {
                 throw new Error('You can only edit your own reviews');
             }
             
             const result = await reviewModel.edit(reviewData);
-            await reviewService.invalidateCache(reviewData.productId);
+            await reviewService.invalidateCache(reviewData.productid);
             
             // Force update of the product rating
-            await reviewService.getRating(reviewData.productId, true);
+            await reviewService.getRating(reviewData.productid, true);
             
             return result;
         } catch (error) {
@@ -184,11 +184,11 @@ const reviewService = {
             }
             
             // Check if user owns the review or is admin (admin check would be added here if needed)
-            if (userId && review.userId !== userId) {
+            if (userId && review.userid !== userId) {
                 throw new Error('You can only delete your own reviews');
             }
             
-            const productId = review.productId;
+            const productId = review.productid;
             const result = await reviewModel.delete('id', reviewId);
             
             await reviewService.invalidateCache(productId);

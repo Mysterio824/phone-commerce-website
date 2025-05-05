@@ -16,10 +16,22 @@ const productUtils = {
         const images = await imageModel.some(product.id) ?? [];
         product.images = images;
 
+        if (product.images && product.images.length && product.thumburl === "") {
+            product.thumburl = product.images[0].url;
+        }
+
         // Get product variants if requested
         if (options.withVariants) {
             const variants = await variantService.getVariantsByProductId(product.id) ?? [];
             product.variants = variants;
+
+            product.price = Infinity;
+            for (let i = 0; i < variants.length; i++) {
+                if (variants[i].stock > 0) {
+                    product.price = Math.min(variants[i].price, product.price);
+                    break;
+                }
+            }
         }
 
         // Get product brand if requested

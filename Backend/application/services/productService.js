@@ -99,7 +99,7 @@ const productService = {
             }
 
             // Get related products
-            const relatedCacheKey = `${CACHE_KEYS.RELATED_PRODUCTS}${product.cateId}`;
+            const relatedCacheKey = `${CACHE_KEYS.RELATED_PRODUCTS}${product.cateid}`;
             let relatedProducts;
             const cachedRelated = await cacheService.get(relatedCacheKey);
 
@@ -107,7 +107,7 @@ const productService = {
                 relatedProducts = cachedRelated;
             } else {
                 // Get related products by category
-                const categoryProducts = await productsModel.some('cateId', product.cateId);
+                const categoryProducts = await productsModel.some('cateId', product.cateid);
 
                 // Exclude current product
                 const filteredProducts = categoryProducts.filter(p => p.id !== parseInt(productId));
@@ -143,7 +143,7 @@ const productService = {
                 const enrichedProduct = await productUtils.enrichProduct(product);
 
                 // Get related products
-                const categoryProducts = await productsModel.some('cateId', product.cateId);
+                const categoryProducts = await productsModel.some('cateId', product.cateid);
 
                 // Exclude current product and limit to 10 related items
                 const relatedProducts = await Promise.all(
@@ -184,16 +184,16 @@ const productService = {
             }
 
             // Check if category exists if provided
-            if (productData.cateId) {
-                const category = await categoryService.getCategoryById(productData.cateId);
+            if (productData.cateid) {
+                const category = await categoryService.getCategoryById(productData.cateid);
                 if (!category) {
                     throw new Error('Category does not exist');
                 }
             }
 
             // Check if brand exists if provided
-            if (productData.brandId) {
-                const brand = await brandService.getBrandById(productData.brandId);
+            if (productData.brandid) {
+                const brand = await brandService.getBrandById(productData.brandid);
                 if (!brand) {
                     throw new Error('Brand does not exist');
                 }
@@ -223,16 +223,16 @@ const productService = {
             }
 
             // Check if category exists if provided
-            if (productData.cateId) {
-                const category = await categoryService.getCategoryById(productData.cateId);
+            if (productData.cateid) {
+                const category = await categoryService.getCategoryById(productData.cateid);
                 if (!category) {
                     throw new Error('Category does not exist');
                 }
             }
 
             // Check if brand exists if provided
-            if (productData.brandId) {
-                const brand = await brandService.getBrandById(productData.brandId);
+            if (productData.brandid) {
+                const brand = await brandService.getBrandById(productData.brandid);
                 if (!brand) {
                     throw new Error('Brand does not exist');
                 }

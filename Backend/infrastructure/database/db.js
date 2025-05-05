@@ -38,7 +38,7 @@ const defaultSchema = process.env.DBSCHEMA || 'public';
 
 const createDbClient = (schema = defaultSchema) => {
     const qualifyTableName = (tbName) => {
-        return `"${schema}"."${tbName}"`;
+        return `${schema}.${tbName}`;
     };
 
     const executeQuery = async (text, values = [], client = pool) => {
@@ -68,16 +68,12 @@ const createDbClient = (schema = defaultSchema) => {
         },
 
         some: async (tbName, idField, idValue, page = 1, perPage = Infinity) => {
-            if (!allowedTables[tbName] || !allowedTables[tbName].includes(idField)) {
-                throw new Error("Invalid table or field name");
-            }
-
             const offset = (page - 1) * perPage;
             const text = `
-              SELECT * FROM "${tbName}"
-              WHERE "${idField}" = $1
+              SELECT * FROM ${qualifyTableName(tbName)}
+              WHERE ${idField} = $1
               ${perPage !== Infinity ? `LIMIT ${perPage} OFFSET ${offset}` : ''}`;
-
+            
             return await executeQuery(text, [idValue]);
         },
 
@@ -90,7 +86,7 @@ const createDbClient = (schema = defaultSchema) => {
         add: async (tbName, entity, client = pool) => {
             const keys = Object.keys(entity);
             const values = Object.values(entity);
-            const quotedKeys = keys.map(key => `"${key}"`); // Quote keys
+            const quotedKeys = keys.map(key => `${key}`); // Quote keys
             const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
             const text = `
                 INSERT INTO ${qualifyTableName(tbName)} (${quotedKeys.join(', ')})
@@ -119,7 +115,7 @@ const createDbClient = (schema = defaultSchema) => {
             const text = `
                 UPDATE ${qualifyTableName(tbName)}
                 SET ${setClause}
-                WHERE "${idField}" = $${filteredKeys.length + 1}  /* Quote idField */
+                WHERE ${idField} = $${filteredKeys.length + 1}  /* Quote idField */
                 RETURNING *
             `;
             const values = [...filteredValues, idValue];
@@ -133,7 +129,7 @@ const createDbClient = (schema = defaultSchema) => {
         },
 
         delete: async (tbName, idField, idValue, client = pool) => {
-            const text = `DELETE FROM ${qualifyTableName(tbName)} WHERE "${idField}" = $1 RETURNING *`;
+            const text = `DELETE FROM ${qualifyTableName(tbName)} WHERE ${idField} = $1 RETURNING *`;
             const rows = await executeQuery(text, [idValue], client);
             if (rows.length === 0) {
                 console.warn(`Delete attempted on non-existent record: ${tbName} with ${idField}=${idValue}`);

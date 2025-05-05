@@ -5,7 +5,6 @@ const { client } = require('../../infrastructure/external/redisClient');
 const mailService = require('../../infrastructure/messaging/mailService');
 const userModel = require('../../infrastructure/database/models/user.m');
 const ROLES = require('../enums/roles');
-const config = require('../../config'); 
 const { v4: uuidv4 } = require('uuid');
 
 class AuthService {
@@ -59,43 +58,45 @@ class AuthService {
     }
 
     static async handleSignup(user) {
-        const sessionId = crypto.randomBytes(10).toString('hex');
-        const confirmToken = jwt.sign(
-            { sessionId },
-            process.env.EMAIL_CONFIRMATION_SECRET
-        );
-
+        const code = crypto.randomInt(100000, 999999).toString();
+    
         user.role = ROLES.USER;
-        await client.set(sessionId, JSON.stringify(user), 'EX', 3600);
-
-        const confirmationUrl = `${config.app.apiBaseUrl}/auth/confirm/${confirmToken}`;
-        await mailService.sendConfirmationEmail(user.email, user.username, confirmationUrl);
-
-        return { username: user.username, confirmToken };
+        await client.set(code, JSON.stringify(user), 'EX', 1200);
+    
+        await mailService.sendConfirmationEmail(user.email, user.username, code);
+    
+        return { username: user.username };
     }
 
-    static async verifyAccount(token) {
-        if (!token) {
-            throw new CustomError(404, 'Invalid token');
+    static async verifyAccount(code) {
+        if (!code) {
+            throw new CustomError(400, 'Verification code is required');
         }
-
-        const decoded = jwt.verify(token, process.env.EMAIL_CONFIRMATION_SECRET);
-        const sessionData = await client.get(decoded.sessionId);
+    
+        const sessionData = await client.get(code);
         if (!sessionData) {
-            throw new CustomError(401, 'Session expired or invalid');
+            throw new CustomError(401, 'Invalid or expired verification code');
         }
-
+    
         const user = JSON.parse(sessionData);
         if (!user) {
-            throw new CustomError(404, 'Invalid token');
+            throw new CustomError(404, 'Invalid verification code');
         }
 
-        await client.del(decoded.sessionId);
-        const addedUser = await userModel.add(user);
-        await mailService.sendThankYouEmail(user.email, user.username);
+        await client.del(code); // Clean up after use
+        try {
+            const addedUser = await userModel.add(user);
+            await mailService.sendThankYouEmail(user.email, user.username);
 
-        return addedUser;
-    }
+            return addedUser;
+        } catch (error) {
+            if (error.code === 'ER_DUP_ENTRY') {
+                throw new CustomError(409, 'User already exists');
+            } else {
+                throw new CustomError(500, 'Failed to add user to the database');
+            }
+        }
+    }    
 
     static async refresh(refreshToken) {
         if (!refreshToken) {

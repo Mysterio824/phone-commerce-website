@@ -1,0 +1,1942 @@
+openapi: 3.0.0
+info:
+  title: Phone Commerce API
+  version: 1.0.0
+  description: API documentation for phone commerce website
+servers:
+  - url: https://localhost:3000
+    description: Development server
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+    description: Authentication endpoints
+  - name: Users
+    description: API for user management
+  - name: Products
+    description: API for managing products
+  - name: Variants
+    description: API for managing product variants
+  - name: Promotions
+    description: API for managing product promotions
+  - name: Images
+    description: API for image uploads and retrieval
+  - name: Categories
+    description: API for product categories
+  - name: Brands
+    description: API for product brands
+  - name: Reviews
+    description: API for product reviews
+  - name: Cart
+    description: Shopping cart operations
+paths:
+  # Auth endpoints
+  /api/auth/login:
+    post:
+      summary: User login
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+                  refreshToken:
+                    type: string
+                  user:
+                    type: object
+        '400':
+          description: Invalid credentials
+        '500':
+          description: Server error
+          
+  /api/auth/signup:
+    post:
+      summary: User registration
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          description: Invalid input or email already exists
+        '500':
+          description: Server error
+          
+  /api/auth/logout:
+    get:
+      summary: User logout
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: Logout successful
+        '500':
+          description: Server error
+          
+  /api/auth/refresh-token:
+    post:
+      summary: Refresh authentication token
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+                  refreshToken:
+                    type: string
+        '401':
+          description: Invalid refresh token
+        '500':
+          description: Server error
+          
+  /api/auth/confirm:
+    post:
+      summary: Verify user account
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Account verified successfully
+        '400':
+          description: Invalid or expired token
+        '500':
+          description: Server error
+          
+  /api/auth/google:
+    get:
+      summary: Google authentication
+      tags:
+        - Auth
+      security: []
+      responses:
+        '302':
+          description: Redirects to Google authentication page
+          
+  /api/auth/google/callback:
+    get:
+      summary: Google authentication callback
+      tags:
+        - Auth
+      security: []
+      responses:
+        '302':
+          description: Redirects after Google authentication
+
+  # User endpoints
+  /api/users:
+    get:
+      summary: Get all users (admin only)
+      tags:
+        - Users
+      responses:
+        '200':
+          description: List of all users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        email:
+                          type: string
+                        role:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin access required
+        '500':
+          description: Server error
+          
+  /api/users/register:
+    post:
+      summary: Register a new user
+      tags:
+        - Users
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                phone:
+                  type: string
+                address:
+                  type: string
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          description: Invalid input or email already exists
+        '500':
+          description: Server error
+          
+  /api/users/login:
+    post:
+      summary: User login
+      tags:
+        - Users
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+                  user:
+                    type: object
+        '400':
+          description: Invalid credentials
+        '500':
+          description: Server error
+          
+  /api/users/profile:
+    get:
+      summary: Get user profile
+      tags:
+        - Users
+      responses:
+        '200':
+          description: User profile information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      role:
+                        type: string
+                      phone:
+                        type: string
+                      address:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+          
+  /api/users/{id}:
+    get:
+      summary: Get user by ID
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        '200':
+          description: User information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      role:
+                        type: string
+                      phone:
+                        type: string
+                      address:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Can only access own resource
+        '404':
+          description: User not found
+        '500':
+          description: Server error
+    put:
+      summary: Update user information
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                address:
+                  type: string
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: User updated successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Can only update own resource
+        '404':
+          description: User not found
+        '500':
+          description: Server error
+    delete:
+      summary: Delete user
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        '200':
+          description: User deleted successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin or resource owner only
+        '404':
+          description: User not found
+        '500':
+          description: Server error
+
+  # Categories endpoints
+  /api/categories:
+    get:
+      summary: Get all categories
+      tags:
+        - Categories
+      security: []
+      responses:
+        '200':
+          description: List of all categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        image:
+                          type: string
+                        parentId:
+                          type: integer
+        '500':
+          description: Server error
+          
+  /api/categories/add:
+    post:
+      summary: Add a new category (admin only)
+      tags:
+        - Categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                image:
+                  type: string
+                parentId:
+                  type: integer
+      responses:
+        '201':
+          description: Category created successfully
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin access required
+        '500':
+          description: Server error
+          
+  /api/categories/edit:
+    put:
+      summary: Update a category (admin only)
+      tags:
+        - Categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                description:
+                  type: string
+                image:
+                  type: string
+                parentId:
+                  type: integer
+      responses:
+        '200':
+          description: Category updated successfully
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin access required
+        '404':
+          description: Category not found
+        '500':
+          description: Server error
+          
+  /api/categories/delete:
+    delete:
+      summary: Delete a category (admin only)
+      tags:
+        - Categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: integer
+      responses:
+        '200':
+          description: Category deleted successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin access required
+        '404':
+          description: Category not found
+        '500':
+          description: Server error
+
+  # Brands endpoints
+  /api/brands:
+    get:
+      summary: Get all brands (admin only)
+      tags:
+        - Brands
+      responses:
+        '200':
+          description: List of all brands
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        logo:
+                          type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin access required
+        '500':
+          description: Server error
+          
+  /api/brands/{id}:
+    get:
+      summary: Get brand details (admin only)
+      tags:
+        - Brands
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Brand ID
+      responses:
+        '200':
+          description: Brand details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      description:
+                        type: string
+                      logo:
+                        type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin access required
+        '404':
+          description: Brand not found
+        '500':
+          description: Server error
+          
+  /api/brands/add:
+    post:
+      summary: Add a new brand (admin only)
+      tags:
+        - Brands
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                logo:
+                  type: string
+      responses:
+        '201':
+          description: Brand created successfully
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin access required
+        '500':
+          description: Server error
+          
+  /api/brands/{id}/update:
+    put:
+      summary: Update a brand (admin only)
+      tags:
+        - Brands
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Brand ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                logo:
+                  type: string
+      responses:
+        '200':
+          description: Brand updated successfully
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin access required
+        '404':
+          description: Brand not found
+        '500':
+          description: Server error
+          
+  /api/brands/{id}/delete:
+    delete:
+      summary: Delete a brand (admin only)
+      tags:
+        - Brands
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Brand ID
+      responses:
+        '200':
+          description: Brand deleted successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin access required
+        '404':
+          description: Brand not found
+        '500':
+          description: Server error
+
+  # Reviews endpoints
+  /api/reviews/{productId}/reviews:
+    get:
+      summary: Get all reviews for a product
+      tags:
+        - Reviews
+      security: []
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: integer
+          description: Product ID
+      responses:
+        '200':
+          description: List of reviews for the product
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        productId:
+                          type: integer
+                        userId:
+                          type: integer
+                        userName:
+                          type: string
+                        userAvatar:
+                          type: string
+                        rating:
+                          type: number
+                        comment:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+        '500':
+          description: Server error
+          
+  /api/reviews/{productId}/review:
+    post:
+      summary: Add a new review for a product
+      tags:
+        - Reviews
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: integer
+          description: Product ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rating
+              properties:
+                rating:
+                  type: number
+                  minimum: 1
+                  maximum: 5
+                comment:
+                  type: string
+      responses:
+        '201':
+          description: Review added successfully
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+          
+  /api/reviews/{reviewId}/review:
+    put:
+      summary: Update a review
+      tags:
+        - Reviews
+      parameters:
+        - in: path
+          name: reviewId
+          required: true
+          schema:
+            type: integer
+          description: Review ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: number
+                  minimum: 1
+                  maximum: 5
+                comment:
+                  type: string
+      responses:
+        '200':
+          description: Review updated successfully
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Can only update own review
+        '404':
+          description: Review not found
+        '500':
+          description: Server error
+    delete:
+      summary: Delete a review
+      tags:
+        - Reviews
+      parameters:
+        - in: path
+          name: reviewId
+          required: true
+          schema:
+            type: integer
+          description: Review ID
+      responses:
+        '200':
+          description: Review deleted successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Can only delete own review
+        '404':
+          description: Review not found
+        '500':
+          description: Server error
+
+  # Cart endpoints
+  /api/cart/{id}:
+    get:
+      summary: Get user's cart data
+      tags:
+        - Cart
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        '200':
+          description: User's cart data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      userId:
+                        type: integer
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            productId:
+                              type: integer
+                            variantId:
+                              type: integer
+                            quantity:
+                              type: integer
+                            price:
+                              type: number
+                            name:
+                              type: string
+                            image:
+                              type: string
+                            attributes:
+                              type: object
+                              properties:
+                                color:
+                                  type: string
+                                size:
+                                  type: string
+                      totalItems:
+                        type: integer
+                      subtotal:
+                        type: number
+                      tax:
+                        type: number
+                      shipping:
+                        type: number
+                      total:
+                        type: number
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Can only access own cart
+        '500':
+          description: Server error
+          
+  /api/cart/{id}/add:
+    post:
+      summary: Add product to cart
+      tags:
+        - Cart
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - productId
+                - quantity
+              properties:
+                productId:
+                  type: integer
+                variantId:
+                  type: integer
+                quantity:
+                  type: integer
+                  minimum: 1
+      responses:
+        '200':
+          description: Product added to cart successfully
+        '400':
+          description: Invalid input or product out of stock
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Can only modify own cart
+        '404':
+          description: Product not found
+        '500':
+          description: Server error
+          
+  /api/cart/{id}/update:
+    put:
+      summary: Update product quantity in cart
+      tags:
+        - Cart
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cartItemId
+                - quantity
+              properties:
+                cartItemId:
+                  type: integer
+                quantity:
+                  type: integer
+                  minimum: 1
+      responses:
+        '200':
+          description: Cart updated successfully
+        '400':
+          description: Invalid input or product out of stock
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Can only modify own cart
+        '404':
+          description: Cart item not found
+        '500':
+          description: Server error
+          
+  /api/cart/{id}/delete:
+    delete:
+      summary: Remove product from cart
+      tags:
+        - Cart
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cartItemId
+              properties:
+                cartItemId:
+                  type: integer
+      responses:
+        '200':
+          description: Product removed from cart successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Can only modify own cart
+        '404':
+          description: Cart item not found
+        '500':
+          description: Server error
+
+  # Images endpoints
+  /api/images/upload:
+    post:
+      summary: Upload an image
+      tags:
+        - Images
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      filename:
+                        type: string
+                      originalname:
+                        type: string
+                      mimetype:
+                        type: string
+                      size:
+                        type: integer
+                      path:
+                        type: string
+                      url:
+                        type: string
+        '400':
+          description: Invalid input or file type
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+          
+  /api/images/{id}:
+    get:
+      summary: Get image by ID
+      tags:
+        - Images
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Image ID
+      responses:
+        '200':
+          description: Image file
+        '404':
+          description: Image not found
+        '500':
+          description: Server error
+    delete:
+      summary: Delete an image
+      tags:
+        - Images
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Image ID
+      responses:
+        '200':
+          description: Image deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Image not found
+        '500':
+          description: Server error
+
+  # Products endpoints
+  /api/products:
+    get:
+      summary: Get all products with optional filtering
+      tags:
+        - Products
+      security: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+          description: Page number
+        - in: query
+          name: perPage
+          schema:
+            type: integer
+            minimum: 1
+          description: Number of products per page
+        - in: query
+          name: cateId
+          schema:
+            type: integer
+          description: Filter by category ID
+        - in: query
+          name: brandId
+          schema:
+            type: integer
+          description: Filter by brand ID
+        - in: query
+          name: min
+          schema:
+            type: number
+          description: Minimum price
+        - in: query
+          name: max
+          schema:
+            type: number
+          description: Maximum price
+        - in: query
+          name: searchQuery
+          schema:
+            type: string
+          description: Search term
+        - in: query
+          name: rating
+          schema:
+            type: number
+          description: Minimum rating
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [min, max, rating, newest]
+          description: Sort order
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        price:
+                          type: number
+                        description:
+                          type: string
+                        cateid:
+                          type: integer
+                        brandid:
+                          type: integer
+                        images:
+                          type: array
+                          items:
+                            type: string
+                        rating:
+                          type: number
+                        promotions:
+                          type: array
+                          items:
+                            type: object
+                  page:
+                    type: integer
+                  perPage:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  totalResults:
+                    type: integer
+                  filters:
+                    type: object
+                    properties:
+                      cateId:
+                        type: integer
+                      sort:
+                        type: string
+                      min:
+                        type: number
+                      max: 
+                        type: number
+                      query:
+                        type: string
+                      rating:
+                        type: number
+                      brandId:
+                        type: integer
+
+        '500':
+          description: Server error
+
+  /api/products/add:
+    post:
+      summary: Create a new product
+      tags:
+        - Products
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - price
+              properties:
+                name:
+                  type: string
+                price:
+                  type: number
+                description:
+                  type: string
+                cateid:
+                  type: integer
+                brandid:
+                  type: integer
+      responses:
+        '201':
+          description: Product created successfully
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /api/products/{id}:
+    get:
+      summary: Get a product by ID
+      tags:
+        - Products
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Product ID
+      responses:
+        '200':
+          description: Product details and related products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      price:
+                        type: number
+                      description:
+                        type: string
+                      cateid:
+                        type: integer
+                      category:
+                        type: object
+                      brandid:
+                        type: integer
+                      brand:
+                        type: object
+                      images:
+                        type: array
+                        items:
+                          type: string
+                      rating:
+                        type: number
+                      variants:
+                        type: array
+                        items:
+                          type: object
+                      promotions:
+                        type: array
+                        items:
+                          type: object
+                  relatedProducts:
+                    type: array
+                    items:
+                      type: object
+        '404':
+          description: Product not found
+        '500':
+          description: Server error
+
+  /api/products/{id}/update:
+    put:
+      summary: Update a product
+      tags:
+        - Products
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Product ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                price:
+                  type: number
+                description:
+                  type: string
+                cateid:
+                  type: integer
+                brandid:
+                  type: integer
+      responses:
+        '200':
+          description: Product updated successfully
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '404':
+          description: Product not found
+        '500':
+          description: Server error
+
+  /api/products/{id}/delete:
+    delete:
+      summary: Delete a product
+      tags:
+        - Products
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Product ID
+      responses:
+        '200':
+          description: Product deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Product not found
+        '500':
+          description: Server error
+
+  # Variants endpoints
+  /api/variants/product/{productId}:
+    get:
+      summary: Get all variants for a product
+      tags:
+        - Variants
+      security: []
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: integer
+          description: ID of the product
+      responses:
+        '200':
+          description: List of product variants
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        productId:
+                          type: integer
+                        color:
+                          type: string
+                        size:
+                          type: string
+                        price:
+                          type: number
+                        stock:
+                          type: integer
+                        imageid:
+                          type: integer
+                        imageurl:
+                          type: object
+        '500':
+          description: Server error
+
+  /api/variants/{id}:
+    get:
+      summary: Get a variant by ID
+      tags:
+        - Variants
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Variant ID
+      responses:
+        '200':
+          description: Variant details
+        '404':
+          description: Variant not found
+        '500':
+          description: Server error
+    put:
+      summary: Update a variant
+      tags:
+        - Variants
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Variant ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                color:
+                  type: string
+                size:
+                  type: string
+                price:
+                  type: number
+                stock:
+                  type: integer
+                imageId:
+                  type: integer
+      responses:
+        '200':
+          description: Variant updated successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Variant not found
+        '500':
+          description: Server error
+    delete:
+      summary: Delete a variant
+      tags:
+        - Variants
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Variant ID
+      responses:
+        '200':
+          description: Variant deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Variant not found
+        '500':
+          description: Server error
+
+  /api/variants:
+    post:
+      summary: Create a new variant
+      tags:
+        - Variants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - productId
+              properties:
+                productId:
+                  type: integer
+                color:
+                  type: string
+                size:
+                  type: string
+                price:
+                  type: number
+                stock:
+                  type: integer
+                imageId:
+                  type: integer
+      responses:
+        '201':
+          description: Variant created successfully
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /api/variants/{id}/stock:
+    patch:
+      summary: Update variant stock
+      tags:
+        - Variants
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Variant ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - stock
+              properties:
+                stock:
+                  type: integer
+                  description: New stock quantity
+      responses:
+        '200':
+          description: Stock updated successfully
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '404':
+          description: Variant not found
+        '500':
+          description: Server error
+
+  # Promotions endpoints
+  /api/promotions:
+    get:
+      summary: Get all promotions
+      tags:
+        - Promotions
+      security: []
+      responses:
+        '200':
+          description: List of all promotions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        discountType:
+                          type: string
+                        discountValue:
+                          type: number
+                        startDate:
+                          type: string
+                          format: date-time
+                        endDate:
+                          type: string
+                          format: date-time
+                        isActive:
+                          type: boolean
+        '500':
+          description: Server error
+    post:
+      summary: Create a new promotion
+      tags:
+        - Promotions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - discountType
+                - discountValue
+                - startDate
+                - endDate
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                discountType:
+                  type: string
+                  enum: [percentage, fixed]
+                discountValue:
+                  type: number
+                startDate:
+                  type: string
+                  format: date-time
+                endDate:
+                  type: string
+                  format: date-time
+                isActive:
+                  type: boolean
+      responses:
+        '201':
+          description: Promotion created successfully
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /api/promotions/{id}:
+    get:
+      summary: Get a promotion by ID
+      tags:
+        - Promotions
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Promotion ID
+      responses:
+        '200':
+          description: Promotion details
+        '404':
+          description: Promotion not found
+        '500':
+          description: Server error
+    put:
+      summary: Update a promotion
+      tags:
+        - Promotions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Promotion ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                discountType:
+                  type: string
+                  enum: [percentage, fixed]
+                discountValue:
+                  type: number
+                startDate:
+                  type: string
+                  format: date-time
+                endDate:
+                  type: string
+                  format: date-time
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          description: Promotion updated successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Promotion not found
+        '500':
+          description: Server error
+    delete:
+      summary: Delete a promotion
+      tags:
+        - Promotions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Promotion ID
+      responses:
+        '200':
+          description: Promotion deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Promotion not found
+        '500':
+          description: Server error
+
+  /api/promotions/product/{productId}:
+    get:
+      summary: Get all promotions for a product
+      tags:
+        - Promotions
+      security: []
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: integer
+          description: Product ID
+      responses:
+        '200':
+          description: List of promotions for the product
+        '500':
+          description: Server error
+
+  /api/promotions/assign:
+    post:
+      summary: Assign a promotion to a product
+      tags:
+        - Promotions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - productId
+                - promotionId
+              properties:
+                productId:
+                  type: integer
+                promotionId:
+                  type: integer
+      responses:
+        '201':
+          description: Promotion assigned successfully
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /api/promotions/product/{productId}/promotion/{promotionId}:
+    delete:
+      summary: Remove a promotion from a product
+      tags:
+        - Promotions
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: integer
+          description: Product ID
+        - in: path
+          name: promotionId
+          required: true
+          schema:
+            type: integer
+          description: Promotion ID
+      responses:
+        '200':
+          description: Promotion removed successfully
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error 

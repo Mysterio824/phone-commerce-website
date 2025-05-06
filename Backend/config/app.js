@@ -4,9 +4,6 @@ const port = parseInt(process.env.PORT || '3000', 10);
 const host = process.env.HOST || 'localhost';
 const environment = process.env.NODE_ENV || 'development';
 
-/**
- * Application Configuration
- */
 const appConfig = {
   port: port,
   host: host,

@@ -1,49 +1,49 @@
-const nodemailer = require('nodemailer');
-const config = require('../../config');
+const nodemailer = require("nodemailer");
+const config = require("../../config");
 
 class MailService {
-    constructor() {
-        this.transporter = nodemailer.createTransport({
-            host: config.mail.transport.host,
-            port: config.mail.transport.port,
-            secure: config.mail.transport.secure,
-            auth: {
-                user: config.mail.transport.auth.user,
-                pass: config.mail.transport.auth.pass,
-            },
-        });
+  constructor() {
+    this.transporter = nodemailer.createTransport({
+      host: config.mail.transport.host,
+      port: config.mail.transport.port,
+      secure: config.mail.transport.secure,
+      auth: {
+        user: config.mail.transport.auth.user,
+        pass: config.mail.transport.auth.pass,
+      },
+    });
 
-        this.transporter.verify((error, success) => {
-            if (error) {
-                console.error('Email transporter configuration error:', error.message);
-            } else {
-                console.log('Email transporter is ready to send messages');
-            }
-        });
+    this.transporter.verify((error, success) => {
+      if (error) {
+        console.error("Email transporter configuration error:", error.message);
+      } else {
+        console.log("Email transporter is ready to send messages");
+      }
+    });
+  }
+
+  async sendEmail(to, subject, text, html) {
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to,
+        subject,
+        text,
+        html,
+      };
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log("Email sent successfully:", info.messageId);
+      return info;
+    } catch (error) {
+      console.error("Error sending email:", error.message);
+      throw new Error(`Failed to send email: ${error.message}`);
     }
+  }
 
-    async sendEmail(to, subject, text, html) {
-        try {
-            const mailOptions = {
-                from: process.env.EMAIL_FROM,
-                to,
-                subject,
-                text,
-                html,
-            };
-            const info = await this.transporter.sendMail(mailOptions);
-            console.log('Email sent successfully:', info.messageId);
-            return info;
-        } catch (error) {
-            console.error('Error sending email:', error.message);
-            throw new Error(`Failed to send email: ${error.message}`);
-        }
-    }
+  async sendConfirmationEmail(to, username, code) {
+    const subject = "Verify Your PhoneEcommerce Account";
 
-    async sendConfirmationEmail(to, username, code) {
-        const subject = 'Verify Your PhoneEcommerce Account';
-
-        const text = `
+    const text = `
         Hello ${username},
 
         Thanks for signing up with PhoneEcommerce! Use the verification code below to complete your registration:
@@ -55,7 +55,7 @@ class MailService {
         - The PhoneEcommerce Team
             `.trim();
 
-        const html = `
+    const html = `
             <!DOCTYPE html>
             <html>
             <head>
@@ -140,14 +140,14 @@ class MailService {
             </html>
             `;
 
-        return await this.sendEmail(to, subject, text, html);
-    }
+    return await this.sendEmail(to, subject, text, html);
+  }
 
-    async sendThankYouEmail(to, username) {
-        const subject = "Welcome to Our App!";
-        const text = `Hi ${username},\n\nWelcome to our platform! Your account has been successfully created.\n\nIf you have any questions or need support, feel free to reach out.\n\nThanks,\nThe Team`;
-    
-        const html = `
+  async sendThankYouEmail(to, username) {
+    const subject = "Welcome to Our App!";
+    const text = `Hi ${username},\n\nWelcome to our platform! Your account has been successfully created.\n\nIf you have any questions or need support, feel free to reach out.\n\nThanks,\nThe Team`;
+
+    const html = `
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                 <h2 style="color: #1a73e8;">Welcome to Our App!</h2>
                 <p>Hi <strong>${username}</strong>,</p>
@@ -163,9 +163,9 @@ class MailService {
                 <p>Cheers,<br>The Team</p>
             </div>
         `;
-    
-        return await this.sendEmail(to, subject, text, html);
-    }    
+
+    return await this.sendEmail(to, subject, text, html);
+  }
 }
 
 module.exports = new MailService();

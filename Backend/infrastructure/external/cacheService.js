@@ -1,14 +1,14 @@
-const { client } = require('./redisClient');
+const { client } = require("./redisClient");
 
 class CacheService {
-  constructor(namespace = '') {
-    this.namespace = namespace ? `${namespace}:` : '';
-  } 
+  constructor(namespace = "") {
+    this.namespace = namespace ? `${namespace}:` : "";
+  }
 
   _namespacedKey(key) {
     return `${this.namespace}${key}`;
   }
-  
+
   async get(key) {
     try {
       const namespacedKey = this._namespacedKey(key);
@@ -19,7 +19,7 @@ class CacheService {
       return null;
     }
   }
-  
+
   async set(key, data, ttl) {
     try {
       const namespacedKey = this._namespacedKey(key);
@@ -30,14 +30,14 @@ class CacheService {
       return false;
     }
   }
-  
+
   async del(keys) {
     if (!keys) return true;
 
     try {
       if (Array.isArray(keys)) {
         if (keys.length === 0) return true;
-        const namespacedKeys = keys.map(key => this._namespacedKey(key));
+        const namespacedKeys = keys.map((key) => this._namespacedKey(key));
         await client.del(namespacedKeys);
       } else {
         await client.del(this._namespacedKey(keys));
@@ -88,11 +88,11 @@ class CacheService {
 module.exports = {
   forDomain: (domain) => new CacheService(domain),
 
-  product: new CacheService('product'),
-  user: new CacheService('user'),
-  cart: new CacheService('cart'),
-  category: new CacheService('category'),
-  brand: new CacheService('brand'),
+  product: new CacheService("product"),
+  user: new CacheService("user"),
+  cart: new CacheService("cart"),
+  category: new CacheService("category"),
+  brand: new CacheService("brand"),
 
-  instance: new CacheService()
+  instance: new CacheService(),
 };

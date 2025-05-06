@@ -1,29 +1,30 @@
 const express = require("express");
-const productController = require("../controllers/productController");
+const brandController = require("../controllers/brandController");
 const { authorize } = require("../middlewares/authorize");
 const ROLES = require("../../application/enums/roles");
 
 const router = express.Router();
 
-// Public routes (no authorization required)
-router.get("/", productController.getProducts);
-router.get("/:id", productController.getDetail);
-
-// Admin-only routes
+router.get("/", authorize({ roles: ROLES.ADMIN }), brandController.getAll);
+router.get(
+  "/:id",
+  authorize({ roles: ROLES.ADMIN }),
+  brandController.getDetail
+);
 router.post(
   "/add",
   authorize({ roles: ROLES.ADMIN }),
-  productController.postAddProduct
+  brandController.addBrand
 );
 router.put(
   "/:id/update",
   authorize({ roles: ROLES.ADMIN }),
-  productController.putEditProduct
+  brandController.updateBrand
 );
 router.delete(
   "/:id/delete",
   authorize({ roles: ROLES.ADMIN }),
-  productController.deleteProduct
+  brandController.deleteBrand
 );
 
 module.exports = router;

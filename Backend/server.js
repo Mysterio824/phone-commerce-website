@@ -66,6 +66,7 @@ const reviewRoutes = require("./interfaces/routes/reviewRoute");
 const brandRoutes = require("./interfaces/routes/brandRoute");
 const promotionRoutes = require("./interfaces/routes/promotionRoute");
 const variantRoutes = require("./interfaces/routes/variantRoute");
+const orderRoutes = require("./interfaces/routes/orderRoute");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -77,6 +78,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/promotions", promotionRoutes);
 app.use("/api/variants", variantRoutes);
+app.use("/api/orders", orderRoutes);
 
 app.use((err, req, res, next) => {
   console.error("Error caught by global error handler:", err);

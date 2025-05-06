@@ -11,17 +11,17 @@ router.get("/:id", variantController.getVariantById);
 
 // Admin routes
 router.post(
-  "/",
+  "/add",
   authorize({ roles: ROLES.ADMIN }),
   variantController.createVariant
 );
 router.put(
-  "/:id",
+  "/:id/edit",
   authorize({ roles: ROLES.ADMIN }),
   variantController.updateVariant
 );
 router.delete(
-  "/:id",
+  "/:id/delete",
   authorize({ roles: ROLES.ADMIN }),
   variantController.deleteVariant
 );

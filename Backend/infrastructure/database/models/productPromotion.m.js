@@ -1,75 +1,59 @@
 const db = require("../db");
 const tbName = "ProductPromotions";
+const qualifyTableName = "public.ProductPromotions";
+const idFieldTB = "id";
+const idFieldTB2 = "productid";
+const idFieldTB3 = "promotionid";
 
 const productPromotionModel = {
-  /**
-   * Get all product-promotion associations
-   */
   all: async () => {
     return await db.all(tbName);
   },
 
-  /**
-   * Get a specific product-promotion association
-   */
   one: async (productId, promotionId) => {
     return await db.query(
-      `SELECT * FROM ${tbName} WHERE productId = ? AND promotionId = ?`,
+      `SELECT * FROM ${qualifyTableName} WHERE ${idFieldTB2} = $1 AND ${idFieldTB3} = $2`,
       [productId, promotionId]
     );
   },
 
-  /**
-   * Get all promotions for a product
-   */
   getByProductId: async (productId) => {
-    return await db.query(`SELECT * FROM ${tbName} WHERE productId = ?`, [
-      productId,
-    ]);
+    return await db.query(
+      `SELECT * FROM ${qualifyTableName} WHERE ${idFieldTB2} = $1`,
+      [productId]
+    );
   },
 
-  /**
-   * Get all products for a promotion
-   */
   getByPromotionId: async (promotionId) => {
-    return await db.query(`SELECT * FROM ${tbName} WHERE promotionId = ?`, [
-      promotionId,
-    ]);
+    return await db.query(
+      `SELECT * FROM ${qualifyTableName} WHERE ${idFieldTB3} = $1`,
+      [promotionId]
+    );
   },
 
-  /**
-   * Add a product-promotion association
-   */
   add: async (association) => {
     return await db.add(tbName, association);
   },
 
-  /**
-   * Remove a product-promotion association
-   */
   remove: async (productId, promotionId) => {
     return await db.query(
-      `DELETE FROM ${tbName} WHERE productId = ? AND promotionId = ?`,
+      `DELETE FROM ${qualifyTableName} WHERE ${idFieldTB2} = $1 AND ${idFieldTB3} = $2`,
       [productId, promotionId]
     );
   },
 
-  /**
-   * Remove all associations for a product
-   */
   removeByProductId: async (productId) => {
-    return await db.query(`DELETE FROM ${tbName} WHERE productId = ?`, [
-      productId,
-    ]);
+    return await db.query(
+      `DELETE FROM ${qualifyTableName} WHERE ${idFieldTB2} = $1`,
+      [productId]
+    );
   },
 
-  /**
-   * Remove all associations for a promotion
-   */
   removeByPromotionId: async (promotionId) => {
-    return await db.query(`DELETE FROM ${tbName} WHERE promotionId = ?`, [
-      promotionId,
-    ]);
+    return await db.query(
+      `DELETE FROM ${qualifyTableName} WHERE ${idFieldTB3} = $1`,
+      [promotionId]
+    );
   },
 };
 

@@ -2,21 +2,23 @@ const CustomError = require("../../utils/cerror");
 const categoryService = require("../../application/services/categoryService");
 
 const categoryController = {
-  getAll: async () => {
+  getAll: async (req, res, next) => {
     try {
-      return await categoryService.buildCategoryHierarchy();
+      const categories = await categoryService.buildCategoryHierarchy();
+      return res.status(200).json({data: { categories }})
     } catch (error) {
-      console.error("Error in getAll:", error);
-      throw error;
+      console.error("Error in getAll:", error.message);
+      next(new CustomError(500, error.message));
     }
   },
 
-  getMapCate: async () => {
+  getMapCate: async (req, res, next) => {
     try {
-      return await categoryService.getCategoryMap();
+      const categories = await categoryService.getCategoryMap();
+      return res.status(200).json({data: { categories }})
     } catch (error) {
       console.error("Error in getMapCate:", error);
-      throw error;
+      next(new CustomError(500, error.message));
     }
   },
 
@@ -49,7 +51,7 @@ const categoryController = {
       });
     } catch (err) {
       console.error(err.message);
-      return res.status(500).json({ message: err.message });
+      next(new CustomError(500, err.message));
     }
   },
 
@@ -109,7 +111,8 @@ const categoryController = {
         data: { deletedCategory },
       });
     } catch (err) {
-      res.status(500).json({ message: err.message });
+        console.error(err.message);
+        next(new CustomError(500, err.message));
     }
   },
 };

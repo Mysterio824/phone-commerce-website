@@ -36,7 +36,7 @@ router.post(
   promotionController.assignPromotion
 );
 router.delete(
-  "/product/:productId/promotion/:promotionId",
+  "/product/:productId/promotion/:promotionId/delete",
   authorize({ roles: ROLES.ADMIN }),
   promotionController.removePromotion
 );

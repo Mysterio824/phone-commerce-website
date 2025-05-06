@@ -3,6 +3,7 @@ const { authorize } = require("../middlewares/authorize");
 const ROLES = require("../../application/enums/roles");
 
 const router = require("express").Router();
+
 router.get("/", categoryController.getAll);
 
 router.put(

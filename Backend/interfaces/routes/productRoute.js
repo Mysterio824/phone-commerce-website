@@ -16,7 +16,7 @@ router.post(
   productController.postAddProduct
 );
 router.put(
-  "/:id/update",
+  "/:id/edit",
   authorize({ roles: ROLES.ADMIN }),
   productController.putEditProduct
 );

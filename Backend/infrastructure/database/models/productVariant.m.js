@@ -1,7 +1,7 @@
 const db = require("../db");
 const tbName = "ProductVariants";
 const idFieldTB = "id";
-const idFieldTB2 = "productId";
+const idFieldTB2 = "productid";
 
 const variantModel = {
   all: async (productId) => {
@@ -13,8 +13,8 @@ const variantModel = {
   add: async (entity) => {
     return await db.add(tbName, entity);
   },
-  edit: async (entity) => {
-    return await db.edit(tbName, entity);
+  edit: async (entity, client) => {
+    return await db.edit(tbName, entity, client);
   },
   delete: async (idValue) => {
     return await db.delete(tbName, idFieldTB, idValue);

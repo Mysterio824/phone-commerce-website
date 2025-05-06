@@ -66,6 +66,37 @@ const createDbClient = (schema = defaultSchema) => {
       }
     },
 
+    startTransaction: async () => {
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        return client;
+      } catch (err) {
+        client.release();
+        throw new Error("Failed to start transaction: " + err.message);
+      }
+    },
+
+    commitTransaction: async (client) => {
+      try {
+        await client.query("COMMIT");
+      } catch (err) {
+        throw new Error("Failed to commit transaction: " + err.message);
+      } finally {
+        client.release();
+      }
+    },
+
+    rollbackTransaction: async (client) => {
+      try {
+        await client.query("ROLLBACK");
+      } catch (err) {
+        throw new Error("Failed to rollback transaction: " + err.message);
+      } finally {
+        client.release();
+      }
+    },
+
     all: async (tbName) => {
       const text = `SELECT * FROM ${qualifyTableName(tbName)}`;
       return await executeQuery(text);
@@ -124,7 +155,7 @@ const createDbClient = (schema = defaultSchema) => {
       return rows[0];
     },
 
-    edit: async (tbName, entity, idField = "id", client = pool) => {
+    edit: async (tbName, entity, client = pool, idField = "id") => {
       const keys = Object.keys(entity);
       const idValue = entity[idField];
       if (idValue === undefined || idValue === null) {

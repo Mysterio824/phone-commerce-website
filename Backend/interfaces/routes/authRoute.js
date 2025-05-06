@@ -1,6 +1,7 @@
 const authController = require("../controllers/authController");
 
 const router = require("express").Router();
+
 router.get("/google", authController.googleAuth);
 router.get("/google/callback", authController.googleCallback);
 router.post("/login", authController.login);

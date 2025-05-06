@@ -15,7 +15,7 @@ router.get(
 );
 
 router.put(
-  "/:id/update",
+  "/:id/edit",
   authorize({
     policy: "OwnResource",
     data: (req) => req.params.id,

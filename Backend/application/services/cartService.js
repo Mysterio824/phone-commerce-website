@@ -23,7 +23,8 @@ const cartService = {
               name: productInfo.name,
               image: productInfo.thumbUrl,
               stock: productInfo.stock,
-              variant: variantInfo.name,
+              variantName: variantInfo.name,
+              variantId: item.variantid
             },
             quantity: item.quantity,
             price: item.quantity * variantInfo.price,

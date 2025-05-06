@@ -19,8 +19,8 @@ const cartItemModel = {
   edit: async (item) => {
     return await db.edit(tbName, item, idFieldTB);
   },
-  delete: async (idValue) => {
-    return await db.delete(tbName, idFieldTB, idValue);
+  delete: async (idValue, client) => {
+    return await db.delete(tbName, idFieldTB, idValue, client);
   },
 };
 

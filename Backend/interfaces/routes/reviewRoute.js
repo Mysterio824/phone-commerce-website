@@ -5,8 +5,8 @@ const { authorize } = require("../middlewares/authorize");
 const router = express.Router();
 
 router.get("/:productId/reviews", reviewController.getReviews);
-router.post("/:productId/review", authorize(), reviewController.addReview);
-router.put("/:reviewId/review", authorize(), reviewController.updateReview);
-router.delete("/:reviewId/review", authorize(), reviewController.deleteReview);
+router.post("/:productId/add", authorize(), reviewController.addReview);
+router.put("/:reviewId/edit", authorize(), reviewController.updateReview);
+router.delete("/:reviewId/delete", authorize(), reviewController.deleteReview);
 
 module.exports = router;

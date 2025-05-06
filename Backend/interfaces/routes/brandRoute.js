@@ -5,7 +5,7 @@ const ROLES = require("../../application/enums/roles");
 
 const router = express.Router();
 
-router.get("/", authorize({ roles: ROLES.ADMIN }), brandController.getAll);
+router.get("/", brandController.getAll);
 router.get(
   "/:id",
   authorize({ roles: ROLES.ADMIN }),
@@ -17,7 +17,7 @@ router.post(
   brandController.addBrand
 );
 router.put(
-  "/:id/update",
+  "/:id/edit",
   authorize({ roles: ROLES.ADMIN }),
   brandController.updateBrand
 );

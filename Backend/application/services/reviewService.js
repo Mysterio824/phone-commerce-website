@@ -1,5 +1,6 @@
 const reviewModel = require("../../infrastructure/database/models/productReview.m");
-const cacheService = require("../../infrastructure/external/cacheService").forDomain("review");
+const cacheService =
+  require("../../infrastructure/external/cacheService").forDomain("review");
 const { validateReview } = require("../validators/reviewValidator");
 const { getPagination } = require("../../utils/paginationUtils");
 

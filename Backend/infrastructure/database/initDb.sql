@@ -150,6 +150,17 @@ CREATE TABLE IF NOT EXISTS Orders (
     status VARCHAR(20) NOT NULL CHECK (status IN ('Pending', 'Delivering', 'Completed', 'Cancelled'))
 );
 
+-- SHIPMENT INFORMATION TABLE
+-- CREATE TABLE IF NOT EXISTS ShipmentInfo (
+--     id SERIAL PRIMARY KEY,
+--     orderId INT REFERENCES Orders(id) ON DELETE SET NULL,
+--     addressId INT REFERENCES OrderAddresses(id) ON DELETE CASCADE,
+--     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     shipmentMethod VARCHAR(20) NOT NULL CHECK (shippingMethod IN ('Standard', 'Express')),
+--     price DECIMAL(10, 2) NOT NULL,
+-- )
+
 -- ORDER DETAILS TABLE
 CREATE TABLE IF NOT EXISTS OrderDetails (
     id SERIAL PRIMARY KEY,

@@ -1,41 +1,42 @@
-const cartController = require("../controllers/cartController");
+const orderController = require("../controllers/orderController");
 const { authorize } = require("../middlewares/authorize");
 
 const router = require("express").Router();
+
+router.post(
+  "/:id/checkout",
+  authorize({
+    policy: "OwnResource",
+    data: (req) => req.params.id,
+  }),
+  orderController.createOrder
+);
+
 router.get(
   "/:id",
   authorize({
     policy: "OwnResource",
     data: (req) => req.params.id,
   }),
-  cartController.getCartData
+  orderController.getUserOrders
 );
 
-router.post(
-  "/:id/add",
+router.get(
+  "/:id/:orderId",
   authorize({
     policy: "OwnResource",
     data: (req) => req.params.id,
   }),
-  cartController.addProduct
+  orderController.getOrderById
 );
 
 router.put(
-  "/:id/edit",
+  "/:id/:orderId/status",
   authorize({
     policy: "OwnResource",
     data: (req) => req.params.id,
   }),
-  cartController.updateProduct
-);
-
-router.delete(
-  "/:id/delete",
-  authorize({
-    policy: "OwnResource",
-    data: (req) => req.params.id,
-  }),
-  cartController.deleteProduct
+  orderController.updateOrderStatus
 );
 
 module.exports = router;

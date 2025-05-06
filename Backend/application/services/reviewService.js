@@ -1,4 +1,5 @@
 const reviewModel = require("../../infrastructure/database/models/productReview.m");
+const userModel = require("../../infrastructure/database/models/user.m")
 const cacheService =
   require("../../infrastructure/external/cacheService").forDomain("review");
 const { validateReview } = require("../validators/reviewValidator");
@@ -88,6 +89,10 @@ const reviewService = {
         if (!reviews || reviews.length === 0) {
           return { currentPage: 1, totalPages: 1, reviews: [] };
         }
+        reviews.forEach(async (item) => {
+            const user = await userModel.one(reviews.userid);
+            item.username = user.username
+        })
         await cacheService.set(cacheKey, reviews, CACHE_TTL.REVIEWS);
       }
 

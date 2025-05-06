@@ -5,6 +5,7 @@ const orderAddressModel = require("../../infrastructure/database/models/orderAdd
 const cartItemModel = require("../../infrastructure/database/models/cartItem.m");
 const productModel = require("../../infrastructure/database/models/product.m");
 const variantModel = require("../../infrastructure/database/models/productVariant.m");
+const couponService = require("./couponService");
 const cartService = require("./cartService");
 const CustomError = require("../../utils/cerror");
 
@@ -41,11 +42,27 @@ const orderService = {
         addressId = newAddress.id;
       }
 
+      let couponId = null;
+      let totalPrice = formattedCart.totalPrice;
+
+      if (orderData.couponCode) {
+        try {
+          const couponResult = await couponService.applyCouponDiscount(
+            orderData.couponCode, 
+            totalPrice
+          );
+          couponId = couponResult.couponId;
+          totalPrice = couponResult.finalAmount;
+        } catch (error) {
+          console.error("Coupon validation failed:", error.message);
+        }
+      }
+
       const order = {
         userId,
-        totalPrice: formattedCart.totalPrice,
+        totalPrice,
         addressId,
-        couponId: orderData.couponId || null,
+        couponId,
         payingMethod: orderData.payingMethod,
         shippingMethod: orderData.shippingMethod,
         status: "Pending",
@@ -73,6 +90,10 @@ const orderService = {
 
         variant.stock -= item.quantity;
         await variantModel.edit(variant, client);
+      }
+
+      if (couponId) {
+        await couponService.incrementUses(couponId);
       }
 
       const cartItems = await cartItemModel.all(userId, client);

@@ -27,7 +27,7 @@ router.put(
 router.get("/", authorize({ roles: ROLES.ADMIN }), userController.getAllUsers);
 
 router.delete(
-  "/:id",
+  "/:id/delete",
   authorize({
     policy: "AdminOrOwner",
     data: (req) => req.params.id,

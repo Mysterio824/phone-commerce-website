@@ -38,7 +38,13 @@ const cartService = {
       (sum, item) => sum + item.price,
       0
     );
+
+    const totalItems = formattedCart.products.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
     formattedCart.totalPrice = totalPrice;
+    formattedCart.totalItems = totalItems;
 
     const { currentPage, totalPages, startIdx, endIdx } = getPagination(
       page,

@@ -987,6 +987,114 @@ paths:
           description: Server error
 
   # Orders endpoints
+  /api/orders/{id}/checkout-data:
+    get:
+      summary: Get checkout data
+      tags:
+        - Orders
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      responses:
+        '200':
+          description: Checkout data fetch successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      cart: 
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          userId:
+                            type: integer
+                          items:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                productId:
+                                  type: integer
+                                variantId:
+                                  type: integer
+                                quantity:
+                                  type: integer
+                                price:
+                                  type: number
+                                name:
+                                  type: string
+                                image:
+                                  type: string
+                          totalItems:
+                            type: integer
+                          totalPrice:
+                            type: number
+                      addresses:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            userid:
+                              type: string
+                            fullName:
+                              type: string
+                            city:
+                              type: string
+                            district:
+                              type: string
+                            ward:
+                              type: string
+                            address:
+                              type: string
+                            note:
+                              type: string
+                            state:
+                              type: string
+                            phoneNumber:
+                              type: string
+                      shippingMethods:
+                        type: array
+                        items: 
+                          type: object
+                          properties:
+                            id: 
+                              type: string
+                            name:
+                              type: string
+                            price:
+                              type: number
+                      paymentMethods:
+                        type: array
+                        items:
+                          id:
+                            type: string
+                          name:
+                            type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Can only get own checkout data
+        '404':
+          description: Cart not found
+        '500':
+          description: Server error
+
   /api/orders/{id}/checkout:
     post:
       summary: Create a new order (checkout)

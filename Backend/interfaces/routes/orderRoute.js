@@ -3,6 +3,16 @@ const { authorize } = require("../middlewares/authorize");
 
 const router = require("express").Router();
 
+// Get checkout data (pre-checkout information)
+router.get(
+  "/:id/checkout-data",
+  authorize({
+    policy: "OwnResource",
+    data: (req) => req.params.id,
+  }),
+  orderController.getCheckoutData
+);
+
 router.post(
   "/:id/checkout",
   authorize({

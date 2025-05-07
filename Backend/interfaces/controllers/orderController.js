@@ -105,6 +105,25 @@ const orderController = {
       }
       next(new CustomError(500, "Failed to update order status"));
     }
+  },
+  
+  getCheckoutData: async (req, res, next) => {
+    try {
+      const userId = req.params.id;
+      console.log(userId);
+      
+      const checkoutData = await orderService.getCheckoutData(userId);
+      
+      res.status(200).json({
+        data: checkoutData
+      });
+    } catch (error) {
+      console.error(error);
+      if (error instanceof CustomError) {
+        return res.status(error.statusCode).json({ message: error.message });
+      }
+      next(new CustomError(500, "Failed to retrieve checkout data"));
+    }
   }
 };
 

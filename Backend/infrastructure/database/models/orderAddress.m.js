@@ -4,8 +4,8 @@ const idFieldTB = "id";
 const idFieldTB2 = "userid";
 
 const orderAddressModel = {
-  all: async () => {
-    return await db.all(tbName);
+  all: async (uid) => {
+    return await db.some(tbName, idFieldTB2, uid);
   },
   some: async (userId) => {
     return await db.some(tbName, idFieldTB2, userId);

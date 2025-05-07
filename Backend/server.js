@@ -68,6 +68,7 @@ const promotionRoutes = require("./interfaces/routes/promotionRoute");
 const variantRoutes = require("./interfaces/routes/variantRoute");
 const orderRoutes = require("./interfaces/routes/orderRoute");
 const couponRoutes = require("./interfaces/routes/couponRoute");
+const { log } = require("console");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -105,6 +106,15 @@ const startServer = async () => {
     if (!dbInitialized) {
       console.error("Failed to initialize database. Exiting...");
       process.exit(1);
+    }
+
+    const createAdminUser = require('./docker/init/initAdmin');
+
+    try{
+      await createAdminUser();
+      console.log("Admin inititialized!");
+    } catch(e){
+      console.error("Init admin error: ", e.message);
     }
 
     const PORT = config.app.port;

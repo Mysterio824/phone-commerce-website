@@ -193,6 +193,38 @@ const orderService = {
 
     return order;
   },
+
+  getCheckoutData: async (userId) => {
+    try {
+      const { formattedCart } = await cartService.getFormattedCartData(userId);
+      
+      // Get user's saved addresses
+      const addresses = await orderAddressModel.all(userId);
+      
+      // Get available shipping methods
+      const shippingMethods = [
+        { id: "standard", name: "Standard Shipping", price: 0 },
+        { id: "express", name: "Express Shipping", price: 10 },
+        { id: "priority", name: "Priority Shipping", price: 20 }
+      ];
+      
+      // Get available payment methods
+      const paymentMethods = [
+        { id: "cod", name: "Cash on Delivery" },
+        { id: "credit_card", name: "Credit Card" },
+        { id: "bank_transfer", name: "Bank Transfer" }
+      ];
+      
+      return {
+        cart: formattedCart,
+        addresses,
+        shippingMethods,
+        paymentMethods
+      };
+    } catch (error) {
+      throw new CustomError(500, "Failed to retrieve checkout data");
+    }
+  },
 };
 
 module.exports = orderService;

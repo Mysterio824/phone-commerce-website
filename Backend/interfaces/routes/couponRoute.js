@@ -51,6 +51,7 @@ router.delete(
 // Validate coupon (available to all authenticated users)
 router.post(
   "/validate",
+  authorize(),
   couponController.validateCoupon
 );
 

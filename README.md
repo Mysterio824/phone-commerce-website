@@ -41,6 +41,7 @@ A robust e-commerce backend system built with Node.js, Express, and PostgreSQL, 
 1. Clone the repository:
 ```bash
 git clone <repository-url>
+git checkout -b develop
 cd phone-commerce-website/Backend
 ```
 
@@ -77,6 +78,9 @@ SMTP_USER=your_email
 SMTP_PASS=your_password
 ```
 
+4. If you're on Windows, make sure to update the path in the `start:windows` script in `package.json` to point to your local `redis-server.exe`.
+   
+
 ## Running the Application
 
 ### Development Mode
@@ -95,8 +99,8 @@ docker-compose up --build
 ```
 
 The application will be available at:
-- API: http://localhost:3000
-- Swagger Documentation: http://localhost:3000/api-docs
+- API: https://localhost:3000
+- Swagger Documentation: https://localhost:3000/api-docs
 
 ## API Documentation
 
@@ -121,18 +125,6 @@ The API documentation is available through Swagger UI at `/api-docs` when the se
 - `npm run start:server`: Starts only the Node.js server
 - `npm run start:windows`: Starts the application with Redis server on Windows
 
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
 ## License
 
 This project is licensed under the ISC License.
-
-## Support
-
-For support, please open an issue in the GitHub repository or contact the development team. 
